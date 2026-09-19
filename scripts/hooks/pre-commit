@@ -1,0 +1,12 @@
+#!/bin/sh
+# Pre-commit: fast formatting check (~2s)
+# Catches unformatted code before it enters the commit history.
+
+echo "🔍 Running Spotless format check..."
+if ! mvn spotless:check -q 2>&1; then
+    echo ""
+    echo "❌ Code formatting violations found."
+    echo "   Run 'mvn spotless:apply' to auto-fix, then re-stage."
+    exit 1
+fi
+echo "✅ Formatting OK"

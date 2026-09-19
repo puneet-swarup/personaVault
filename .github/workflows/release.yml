@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build (skip tests — already verified in CI)
+        run: mvn package -B -DskipTests
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/personavault-*.jar
+          body: |
+            ## PersonaVault ${{ steps.version.outputs.version }}
+
+            ### What's new
+            - See commit history for details.
+
+            ### Run locally
+            ```bash
+            java -jar personavault-${{ steps.version.outputs.version }}.jar
+            ```
+
+            ### Prerequisites
+            - Java 21+
+            - PostgreSQL 16 with pgvector
+            - Ollama (localhost:11434)
+          draft: false
+          prerelease: false

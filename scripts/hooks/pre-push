@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-push: full quality gate (~30-60s)
+# Catches style, static analysis, test, and coverage failures before they hit the remote.
+
+echo "🔍 Running full quality gate (mvn verify)..."
+if ! mvn verify -q 2>&1; then
+    echo ""
+    echo "❌ Quality gate failed. Fix the issues above before pushing."
+    exit 1
+fi
+echo "✅ Quality gate passed"
