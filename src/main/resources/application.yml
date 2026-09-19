@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: personavault
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/personavault
+    username: ${DB_USER:personavault}
+    password: ${DB_PASSWORD:personavault}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: ${OLLAMA_CHAT_MODEL:llama3:8b}
+          temperature: 0.3
+      embedding:
+        options:
+          model: nomic-embed-text
+
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 768
+        index-type: HNSW
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.personavault: INFO
+    org.springframework.ai: INFO   
