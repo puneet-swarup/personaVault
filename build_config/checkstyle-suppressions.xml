@@ -1,0 +1,2 @@
+<!-- Spring Boot application class: not a utility class -->
+<suppress checks="HideUtilityClassConstructor" files=".*PersonaVaultApplication\.java"/>   

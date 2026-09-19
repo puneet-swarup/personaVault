@@ -28,4 +28,8 @@ application-*.yml
 
 # Logs
 *.log
-logs/   
+logs/
+
+# Quality tool reports (generated during mvn verify)
+target/site/
+*.exec
