@@ -13,6 +13,7 @@ Ask questions about your insurance policies, financial records, and medical hist
 I needed a way to query my own documents without sending sensitive data (insurance policies, medical reports, bank statements) to a cloud AI service. PersonaVault runs entirely on local hardware using a local LLM (via Ollama) and a local vector database (PostgreSQL + PGVector).
 
 ## Architecture at a Glance
+```
 Browser (Thymeleaf + vanilla JS + SSE)
 │
 ▼
@@ -27,6 +28,7 @@ Spring Boot 3.4
 ├── PostgreSQL + PGVector (vectors + relational)
 ├── ./data/documents/ (original files)
 └── Ollama (localhost:11434)
+```
 
 
 ## Tech Stack
@@ -75,12 +77,22 @@ docker compose up -d
 ./mvnw spring-boot:run   
 
 Open http://localhost:8080
+```
 
+### Git Hooks (Quality Gates)
+
+This repo uses versioned git hooks to prevent bad code from entering the history.
+
+After cloning, run once:
+
+```bash
+git config core.hooksPath scripts/hooks   
 ```
 
 ## Configuration
 
 All configuration via environment variables (see .env.example):
+
 | Variable | Default | Description |
 |---|---|---|
 |DB_USER | personavault | Postgres username |
@@ -100,3 +112,70 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 | 006 |	@Scheduled over db-scheduler (v1) |
 | 007 |	Structured extraction over pure RAG for exact facts |
 | 008 |	AES-256-GCM field-level encryption |
+
+## Phasing
+| Phase	| Scope	| Status |
+|----|----|----|
+| 1	| Ingestion + Q&A (insurance & financial docs) |	🚧 In Progress |
+| 2	| Structured extraction + renewal alerts + dashboard | ⬜ |
+| 3	| Medical docs + document management + manual corrections |	⬜ |
+| 4	| OCR hardening, email alerts, export/wipe, security hardening | ⬜ |
+
+## Non-Functional Requirements
+- 100% local — zero outbound network calls during normal operation
+- Q&A response < 10 seconds
+- 20-page PDF ingestion < 60 seconds
+- Sensitive fields encrypted at rest (AES-256-GCM)
+- Works offline (after initial model download)
+- LLM ≤ 14B parameters
+- Restartable — scheduled checks resume after reboot
+
+## Project Structure
+```
+src/main/java/com/personavault/
+├── PersonaVaultApplication.java
+├── config/          ← Security, AI, scheduling config
+├── controller/      ← REST + Thymeleaf controllers
+├── service/         ← Ingestion, chat, renewal, notification
+├── repository/      ← JPA repositories
+├── entity/          ← JPA entities (Policy, Document, Notification)
+└── dto/             ← Request/response records   
+```
+
+## Code Quality
+
+The build enforces quality gates via `mvn verify`. All checks must pass before code is considered mergeable.
+
+| Tool | Purpose | Command |
+|---|---|---|
+| **Spotless** (Palantir) | Code formatting, import ordering | `mvn spotless:apply` (auto-fix) / `mvn spotless:check` |
+| **Checkstyle** | Style rules (Javadoc, naming, imports) | runs in `verify` |
+| **PMD** | Code smells, unused code, best practices | runs in `verify` |
+| **SpotBugs** | Bytecode-level bug detection | runs in `verify` |
+| **JaCoCo** | Code coverage (≥80% line, ≥70% branch) | report at `target/site/jacoco/index.html` |
+| **Maven Enforcer** | Require Java 21+, Maven 3.9+, no duplicate deps | runs in `validate` |
+
+### Running the Quality Gate
+
+```bash
+# Full quality gate (format + style + static analysis + tests + coverage)
+mvn verify
+
+# Auto-format code before committing
+mvn spotless:apply
+
+# View coverage report in browser
+open target/site/jacoco/index.html   # macOS
+xdg-open target/site/jacoco/index.html  # Linux   
+```
+
+## CI/CD
+
+| Workflow | Trigger | What it does |
+|---|---|---|
+| **CI** | Push to `main`, PR to `main` | `mvn verify` (full quality gate) + coverage report |
+| **Release** | Tag push (`v*`) | Package JAR + create GitHub Release |
+
+
+## License
+All rights reserved. This project is published for educational and portfolio purposes.

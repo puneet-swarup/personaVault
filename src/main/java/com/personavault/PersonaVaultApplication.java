@@ -11,4 +11,4 @@ public class PersonaVaultApplication {
     public static void main(String[] args) {
         SpringApplication.run(PersonaVaultApplication.class, args);
     }
-}   
+}
