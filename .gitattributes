@@ -1,0 +1,7 @@
+# Enforce LF in the repository
+* text=auto eol=lf
+
+# Explicitly mark binary files
+*.png binary
+*.jpg binary
+*.pdf binary
