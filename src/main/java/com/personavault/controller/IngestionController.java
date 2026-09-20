@@ -50,8 +50,10 @@ public class IngestionController {
      * @return 201 Created with document metadata, or 400 Bad Request on validation failure
      */
     @PostMapping("/upload")
-    public ResponseEntity<UploadResponse> upload(@RequestParam("file") MultipartFile file) {
-        Document doc = ingestionService.ingest(file);
+    public ResponseEntity<UploadResponse> upload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "category", defaultValue = "OTHER") String category) {
+        Document doc = ingestionService.ingest(file, category);
         UploadResponse response =
                 new UploadResponse(doc.getId(), doc.getFileName(), doc.getChunkCount(), doc.getIngestedAt());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

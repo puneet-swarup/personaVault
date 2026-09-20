@@ -16,12 +16,15 @@ import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.UrlResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.personavault.entity.Document;
 import com.personavault.repository.DocumentRepository;
+import com.personavault.repository.NotificationRepository;
+import com.personavault.repository.PolicyRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +50,10 @@ public class IngestionService {
     private final TokenTextSplitter textSplitter;
     private final VectorStore vectorStore;
     private final DocumentRepository documentRepository;
+    private final PolicyRepository policyRepository;
+    private final NotificationRepository notificationRepository;
+    private final JdbcTemplate jdbcTemplate;
+    private final ExtractionService extractionService;
     private final Path storagePath;
 
     /**
@@ -55,17 +62,29 @@ public class IngestionService {
      * @param textSplitter       chunking strategy
      * @param vectorStore        vector database (PGVector)
      * @param documentRepository relational metadata store
+     * @param policyRepository   policy metadata store
+     * @param notificationRepository notification metadata store
      * @param storagePath        root directory for original files
+     * @param jdbcTemplate       jdbcTemplate for vector CRUD
+     * @param extractionService  extraction operations
      */
     public IngestionService(
             TokenTextSplitter textSplitter,
             VectorStore vectorStore,
             DocumentRepository documentRepository,
-            Path storagePath) {
+            PolicyRepository policyRepository,
+            NotificationRepository notificationRepository,
+            Path storagePath,
+            JdbcTemplate jdbcTemplate,
+            ExtractionService extractionService) {
         this.textSplitter = textSplitter;
         this.vectorStore = vectorStore;
         this.documentRepository = documentRepository;
+        this.policyRepository = policyRepository;
+        this.notificationRepository = notificationRepository;
         this.storagePath = storagePath;
+        this.jdbcTemplate = jdbcTemplate;
+        this.extractionService = extractionService;
     }
 
     /**
@@ -76,32 +95,33 @@ public class IngestionService {
      * @throws IngestionException if any stage of the pipeline fails
      */
     @Transactional
-    public Document ingest(MultipartFile file) {
+    public Document ingest(MultipartFile file, String category) {
         validateFile(file);
-        log.info("Starting ingestion: {} ({} bytes)", file.getOriginalFilename(), file.getSize());
+        log.info(
+                "Starting ingestion: {} ({} bytes, category={})", file.getOriginalFilename(), file.getSize(), category);
 
         try {
-            // Stage 1: Store original file on local filesystem
             Path storedFile = storeOriginalFile(file);
-
-            // Stage 2: Parse text using Tika
             List<org.springframework.ai.document.Document> rawDocs = parseDocument(storedFile);
-
-            // Stage 3: Split into chunks
             List<org.springframework.ai.document.Document> chunks = textSplitter.apply(rawDocs);
 
-            // Stage 4: Enrich chunks with source metadata
             Instant now = Instant.now();
             String docRef = UUID.randomUUID().toString().substring(0, 8);
-            enrichChunks(chunks, file.getOriginalFilename(), now, docRef);
+            enrichChunks(chunks, file.getOriginalFilename(), now, docRef, category);
 
-            // Stage 5: Embed and store in vector DB
             vectorStore.accept(chunks);
             log.info("Stored {} chunks for: {}", chunks.size(), file.getOriginalFilename());
 
-            // Stage 6: Record metadata in relational DB
-            Document entity = buildEntity(file, storedFile, chunks.size(), now);
-            return documentRepository.save(entity);
+            Document entity = buildEntity(file, storedFile, chunks.size(), now, category);
+            Document saved = documentRepository.save(entity);
+
+            // Trigger async extraction (fire-and-forget)
+            String rawText = rawDocs.stream()
+                    .map(org.springframework.ai.document.Document::getText)
+                    .reduce("", (a, b) -> a + "\n" + b);
+            extractionService.extractAsync(saved.getId(), rawText);
+
+            return saved;
 
         } catch (IOException e) {
             throw new IngestionException("Failed to ingest document: " + file.getOriginalFilename(), e);
@@ -175,11 +195,13 @@ public class IngestionService {
             List<org.springframework.ai.document.Document> chunks,
             String sourceName,
             Instant ingestedAt,
-            String docRef) {
+            String docRef,
+            String category) {
         for (org.springframework.ai.document.Document chunk : chunks) {
             chunk.getMetadata().put("source", sourceName);
             chunk.getMetadata().put("ingestedAt", ingestedAt.toString());
             chunk.getMetadata().put("documentRef", docRef);
+            chunk.getMetadata().put("category", category);
         }
     }
 
@@ -192,7 +214,7 @@ public class IngestionService {
      * @param now        ingestion timestamp
      * @return the unsaved entity ready for persistence
      */
-    private Document buildEntity(MultipartFile file, Path storedFile, int chunkCount, Instant now) {
+    private Document buildEntity(MultipartFile file, Path storedFile, int chunkCount, Instant now, String category) {
         Document entity = new Document();
 
         String name = file.getOriginalFilename();
@@ -206,7 +228,54 @@ public class IngestionService {
         entity.setFileSizeBytes(file.getSize());
         entity.setChunkCount(chunkCount);
         entity.setIngestedAt(now);
+        entity.setCategory(category != null && !category.isBlank() ? category : "OTHER");
+
         return entity;
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Document doc = documentRepository
+                .findById(id)
+                .filter(d -> !d.isDeleted())
+                .orElseThrow(() -> new IngestionException("Document not found: " + id));
+
+        // 1. Remove vectors
+        deleteVectors(doc);
+
+        // 2. Remove policies
+        policyRepository.deleteByDocumentId(id);
+
+        // 3. Remove notifications (via policies)
+        policyRepository.findByDocumentId(id).forEach(p -> notificationRepository.deleteByPolicyId(p.getId()));
+
+        // 4. Remove file
+        deleteFile(doc.getStoredPath());
+
+        // 5. Soft-delete
+        doc.setDeletedAt(Instant.now());
+        documentRepository.save(doc);
+
+        log.info("Deleted document: {} (id={})", doc.getFileName(), id);
+    }
+
+    private void deleteVectors(Document doc) {
+        Path path = Path.of(doc.getStoredPath());
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            log.warn("Cannot determine documentRef for deletion: {}", doc.getStoredPath());
+            return;
+        }
+        String docRef = fileName.toString().substring(0, 8);
+        jdbcTemplate.update("DELETE FROM ai_vector_store WHERE metadata->>'documentRef' = ?", docRef);
+    }
+
+    private void deleteFile(String storedPath) {
+        try {
+            Files.deleteIfExists(Path.of(storedPath));
+        } catch (IOException e) {
+            log.warn("Could not delete file: {}", storedPath, e);
+        }
     }
 
     /**
