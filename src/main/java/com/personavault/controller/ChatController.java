@@ -43,8 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/chat")
 public class ChatController {
 
-    /** Maximum time the SSE connection stays open (60 seconds). */
-    private static final long SSE_TIMEOUT_MS = 60_000L;
+    /** Maximum time the SSE connection stays open (180 seconds). */
+    private static final long SSE_TIMEOUT_MS = 180_000L;
 
     private final ChatClient chatClient;
 
@@ -72,28 +72,34 @@ public class ChatController {
         log.info("Chat request: {}", request.question());
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
 
+        // Handle timeout gracefully
+        emitter.onTimeout(() -> {
+            log.warn("Chat stream timed out after {}ms", SSE_TIMEOUT_MS);
+            try {
+                emitter.send(SseEmitter.event().data("[Response timed out. Please try again.]"));
+            } catch (IOException ignored) {
+            }
+            emitter.complete();
+        });
+
+        // Handle client disconnect
+        emitter.onCompletion(() -> log.debug("Chat stream completed"));
+
         chatClient.prompt().user(request.question()).stream()
                 .content()
                 .subscribe(
-                        // onNext: send each token as an SSE event
                         chunk -> {
                             try {
                                 emitter.send(SseEmitter.event().data(chunk));
                             } catch (IOException e) {
-                                log.debug("Client disconnected during stream", e);
                                 emitter.completeWithError(e);
                             }
                         },
-                        // onError: complete the stream with an error
                         error -> {
                             log.error("Chat stream error", error);
                             emitter.completeWithError(error);
                         },
-                        // onComplete: signal end of stream to client
-                        () -> {
-                            log.debug("Chat stream completed");
-                            emitter.complete();
-                        });
+                        emitter::complete);
 
         return emitter;
     }

@@ -60,7 +60,7 @@ form.addEventListener('submit', async (e) => {
             sseBuffer = frames.pop(); // Last element is incomplete (or empty)
 
             for (const frame of frames) {
-                const data = frame.replace(/^data:[ ]?/, '');
+                const data = frame.replace(/^data:/, '');
                 if (data) {
                     if (answer === '') {
                         // First token received — remove thinking indicator

@@ -29,7 +29,7 @@ public class AiConfig {
     private static final boolean KEEP_SEPARATOR = true;
 
     private static final int RAG_TOP_K = 5;
-    private static final double RAG_SIMILARITY_THRESHOLD = 0.75;
+    private static final double RAG_SIMILARITY_THRESHOLD = 0.50;
 
     private static final String SYSTEM_PROMPT =
             """
