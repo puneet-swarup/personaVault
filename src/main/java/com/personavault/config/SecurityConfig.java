@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -22,12 +24,17 @@ import org.springframework.security.web.SecurityFilterChain;
  * <ul>
  *   <li>Form-based login (username + password)</li>
  *   <li>Single user, credentials from environment variables</li>
+ *   <li>Bcrypt password encoding (secure even at rest in memory)</li>
  *   <li>All endpoints require authentication except health check and login</li>
- *   <li>CSRF protection enabled (default) — important for form submissions</li>
+ *   <li>CSRF protection on forms; disabled for /api/** (JSON fetch)</li>
  * </ul>
  *
- * <p>For a single-user local app, in-memory user storage is sufficient.
- * No database-backed user table needed.
+ * <p>Design choice: in-memory user storage with bcrypt encoding.
+ * This is deployment-ready — the same code works on a cloud server
+ * with no changes, only different env var values.
+ *
+ * @see "ADR-009: In-Memory User with Form Login"
+ * @see "ADR-010: Bcrypt Password Encoding"
  */
 @Configuration
 @EnableWebSecurity
@@ -40,49 +47,55 @@ public class SecurityConfig {
     private String password;
 
     /**
-     * Defines the security filter chain: which URLs require auth,
-     * which are public, and how login works.
+     * Bcrypt password encoder. Spring Security auto-detects this bean
+     * and uses it for all password matching during authentication.
+     *
+     * <p>Bcrypt is intentionally slow (cost factor 10 = ~100ms per hash).
+     * This is a feature, not a bug: it makes brute-force attacks
+     * computationally expensive even if the in-memory store is dumped.
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Single in-memory user with bcrypt-encoded password.
+     *
+     * <p>The plaintext password from the env var is hashed at startup
+     * and only the hash is stored in memory. The plaintext is never
+     * retained beyond the `User.withUsername().password()` call.
+     */
+    @Bean
+    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
+        UserDetails user = User.withUsername(username)
+                .password(encoder.encode(password))
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
+    }
+
+    /**
+     * Security filter chain: defines authorization rules, login/logout behavior.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Authorize requests
                 .authorizeHttpRequests(auth -> auth
-                        // Public: no auth needed
                         .requestMatchers("/login", "/css/**", "/js/**", "/api/health").permitAll()
-                        // Everything else: authenticated
                         .anyRequest().authenticated()
                 )
-                // Form login
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/documents", true)
                         .permitAll()
                 )
-                // Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                 )
-                // CSRF: keep enabled (protects against cross-site form submissions)
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
 
         return http.build();
     }
-
-    /**
-     * Single in-memory user. For a local single-user app, this is
-     * simpler than a database-backed UserDetailsService.
-     *
-     * <p>Credentials are read from environment variables (or application.yml)
-     * so they're not hardcoded in source.
-     */
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.withUsername(username)
-                .password("{noop}" + password)
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
-}   
+}
