@@ -6,6 +6,14 @@ Ask questions about your insurance policies, financial records, and medical hist
 
 > **100% offline. Nothing leaves your machine.**
 
+[![CI](https://github.com/puneet-swarup/personaVault/actions/workflows/ci.yml/badge.svg)](https://github.com/puneet-swarup/personaVault/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/puneet-swarup/personaVault?include_prereleases)](https://github.com/puneet-swarup/personaVault/releases)
+[![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring AI](https://img.shields.io/badge/Spring_AI-1.0-purple.svg)](https://spring.io/projects/spring-ai)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%7C%20pgvector-blue.svg)](https://www.postgresql.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-llama3--8b%20%7C%20qwen2.5--14b-black.svg)](https://ollama.com/)
+
 ---
 
 ## Why This Exists
@@ -175,6 +183,20 @@ xdg-open target/site/jacoco/index.html  # Linux
 |---|---|---|
 | **CI** | Push to `main`, PR to `main` | `mvn verify` (full quality gate) + coverage report |
 | **Release** | Tag push (`v*`) | Package JAR + create GitHub Release |
+
+## How to Use
+
+1. **Login** — Open http://localhost:8080, enter credentials (default: `admin` / `admin`)
+2. **Upload documents** — Go to Documents page, drag-drop PDFs/DOCX/XLSX
+3. **Ask questions** — Go to Chat page, type a question in plain English
+4. **Get grounded answers** — Responses cite source documents; exact dates/amounts come from the structured database
+
+### Example Questions
+
+- "When does my health policy renew?"
+- "What is my total annual insurance premium?"
+- "Summarize my car insurance policy terms"
+- "What medical reports do I have from 2025?"
 
 
 ## License
