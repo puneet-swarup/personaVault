@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Chat — PersonaVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">PersonaVault</div>
+    <div class="nav-links">
+        <a th:href="@{/documents}">Documents</a>
+        <a th:href="@{/chat}" class="active">Chat</a>
+        <form th:action="@{/logout}" method="post" class="nav-logout">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<main class="content chat-layout">
+    <!-- Chat message log -->
+    <div id="chat-log" class="chat-log">
+        <div class="message bot">
+            <span class="message-text">Ask me about your documents. Try: "When does my health policy renew?"</span>
+        </div>
+    </div>
+
+    <!-- Chat input form -->
+    <form id="chat-form" class="chat-form">
+        <input type="text" name="question" placeholder="Ask a question about your documents..."
+               autocomplete="off" required/>
+        <button type="submit" class="btn-primary" id="send-btn">Send</button>
+    </form>
+</main>
+
+<script th:src="@{/js/chat.js}"></script>
+</body>
+</html>
