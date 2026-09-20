@@ -49,6 +49,7 @@ fileInput.addEventListener('change', () => {
  * @param {File} file - The file to upload
  */
 async function uploadFile(file) {
+const category = document.getElementById('category-select').value;
     const row = document.createElement('div');
     row.className = 'progress-item';
     row.textContent = `⏳ Uploading: ${file.name}...`;
@@ -57,6 +58,7 @@ async function uploadFile(file) {
     try {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('category', category);
 
         const res = await fetch('/api/documents/upload', {
             method: 'POST',
