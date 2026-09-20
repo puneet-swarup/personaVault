@@ -349,11 +349,11 @@
                 </rule>
               </rules>
               <excludes>
-                <exclude>com.personavault.PersonaVaultApplication</exclude>
-                <exclude>com.personavault.config.*</exclude>
-                <exclude>com.personavault.entity.*</exclude>
-                <exclude>com.personavault.dto.*</exclude>
-                <exclude>com.personavault.controller.*</exclude>
+                <exclude>com/personavault/PersonaVaultApplication</exclude>
+                <exclude>com/personavault/config/*</exclude>
+                <exclude>com/personavault/entity/*</exclude>
+                <exclude>com/personavault/dto/*</exclude>
+                <exclude>com/personavault/controller/*</exclude>
               </excludes>
             </configuration>
           </execution>

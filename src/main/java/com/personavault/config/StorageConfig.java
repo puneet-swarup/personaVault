@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Puneet Swarup.
+ * Copyright 2026 Puneet Swarup.
  * Licensed under the PersonaVault project terms.
  */
 package com.personavault.config;

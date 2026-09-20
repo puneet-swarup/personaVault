@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Puneet Swarup.
+ * Copyright 2026 Puneet Swarup.
  * Licensed under the PersonaVault project terms.
  */
 package com.personavault.integration;
@@ -132,10 +132,10 @@ class IngestionAcceptanceIT {
         assertThat(response.getBody()).isNotEmpty();
 
         // The answer should reference the policy number from the sample file
-        // (HP-2025-00123 in our sample)
+        // (HP-2026-00123 in our sample)
         assertThat(response.getBody())
                 .as("Response should contain the policy number from the document")
-                .containsIgnoringCase("HP-2025-00123");
+                .containsIgnoringCase("HP-2026-00123");
     }
 
     // --- Test 4: Q&A — negative (not in docs) ---

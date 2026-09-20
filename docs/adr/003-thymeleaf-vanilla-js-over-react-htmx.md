@@ -1,7 +1,7 @@
 # ADR-003: Thymeleaf + Vanilla JS + SSE Over React/HTMX
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 The frontend needs four views: chat (with streaming), document upload/browse, dashboard, and notification panel. The user explicitly wants **no Node.js, no build step, no frontend framework**. Total expected JS: ~200 lines.

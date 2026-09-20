@@ -1,7 +1,7 @@
 # ADR-010: Bcrypt Password Encoding
 
 ## Status
-Accepted (2025-09-20)
+Accepted (2026-09-20)
 
 ## Context
 The single user's password must be stored securely in memory. Even for a local app:

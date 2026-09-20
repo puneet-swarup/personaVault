@@ -1,7 +1,7 @@
 # ADR-004: Local Filesystem Over MinIO
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 Original documents (PDFs, images, spreadsheets) need to be stored so the user can view them, re-ingest after corrections, and export everything. Expected volume: **200-500 files, <5 GB total**. Single user, single machine.

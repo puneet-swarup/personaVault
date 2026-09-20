@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Puneet Swarup.
+ * Copyright 2026 Puneet Swarup.
  * Licensed under the PersonaVault project terms.
  */
 package com.personavault.service;
@@ -73,10 +73,10 @@ class IngestionServiceTest {
         // A real plain-text file that Tika can parse
         validTextFile = new MockMultipartFile(
                 "file",
-                "health_policy_2025.txt",
+                "health_policy_2026.txt",
                 "text/plain",
                 ("This is a health insurance policy document. "
-                                + "The policy number is HP-2025-00123. "
+                                + "The policy number is HP-2026-00123. "
                                 + "The annual premium is 15000 INR. "
                                 + Arrays.toString("The policy expires on 2026-03-15.".getBytes()))
                         .getBytes());
@@ -104,7 +104,7 @@ class IngestionServiceTest {
 
             // Assert: entity metadata
             assertThat(result).isNotNull();
-            assertThat(result.getFileName()).isEqualTo("health_policy_2025.txt");
+            assertThat(result.getFileName()).isEqualTo("health_policy_2026.txt");
             assertThat(result.getMimeType()).isEqualTo("text/plain");
             assertThat(result.getChunkCount()).isEqualTo(2);
             assertThat(result.getFileSizeBytes()).isEqualTo(validTextFile.getSize());
@@ -135,7 +135,7 @@ class IngestionServiceTest {
 
             // Assert: metadata was stamped
             assertThat(chunk.getMetadata()).containsKey("source");
-            assertThat(chunk.getMetadata().get("source")).isEqualTo("health_policy_2025.txt");
+            assertThat(chunk.getMetadata().get("source")).isEqualTo("health_policy_2026.txt");
             assertThat(chunk.getMetadata()).containsKey("ingestedAt");
             assertThat(chunk.getMetadata()).containsKey("documentRef");
         }

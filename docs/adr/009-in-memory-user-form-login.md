@@ -1,7 +1,7 @@
 # ADR-009: In-Memory User with Form Login
 
 ## Status
-Accepted (2025-09-20)
+Accepted (2026-09-20)
 
 ## Context
 The app requires authentication (NFR #5: "Web UI requires login"). We need a login mechanism that is:

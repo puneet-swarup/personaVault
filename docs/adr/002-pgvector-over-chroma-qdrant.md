@@ -1,7 +1,7 @@
 # ADR-002: PostgreSQL + PGVector Over Chroma/Qdrant
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 The system needs two data capabilities:

@@ -1,7 +1,7 @@
 # ADR-008: AES-256-GCM Field-Level Encryption
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 Even locally, the PostgreSQL data file and the `./data/documents/` directory are readable by any process running as the same OS user. A malware infection, accidental `cat` of the DB file, or a backup shared with a technician would expose PII (policy numbers, medical data, account numbers). Field-level encryption ensures sensitive data is **unreadable without the key**, even if the storage is compromised.

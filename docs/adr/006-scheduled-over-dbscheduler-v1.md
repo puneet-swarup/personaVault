@@ -1,7 +1,7 @@
 # ADR-006: @Scheduled Over db-scheduler (v1)
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 Renewal checks must run daily at 8 AM IST. The app is single-user, single-instance. If the app is down at 8 AM (machine off, reboot), the check should run on next startup as a catch-up.

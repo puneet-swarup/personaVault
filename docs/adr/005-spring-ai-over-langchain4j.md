@@ -1,7 +1,7 @@
 # ADR-005: Spring AI Over LangChain4j
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 We need: RAG (retrieval-augmented generation), chat model integration, vector store integration, document parsing (Tika), and text splitting. Two mature Java options: **Spring AI** and **LangChain4j**.

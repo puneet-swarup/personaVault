@@ -1,7 +1,7 @@
 # ADR-007: Structured Extraction (Regex + LLM JSON) Over Pure RAG for Dates/Amounts
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 Critical facts — policy expiry dates, premium amounts, policy numbers — must be **exact**. LLMs can hallucinate or misread numbers, especially from PDFs with complex layouts, tables, or mixed languages. RAG retrieves relevant text chunks but doesn't guarantee exact numeric extraction. Renewal alerts need to query "all policies expiring in the next 60 days" — a relational query, not a semantic search.

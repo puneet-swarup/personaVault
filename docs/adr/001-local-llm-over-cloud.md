@@ -2,7 +2,7 @@
 # ADR-001: Local LLM (Ollama) Over Cloud API
 
 ## Status
-Accepted (2025-09-19)
+Accepted (2026-09-19)
 
 ## Context
 PersonaVault ingests highly sensitive personal documents — insurance policies, medical records, financial statements. Sending this data to a cloud LLM API (OpenAI, Anthropic, etc.) violates the core privacy guarantee. The user requires **zero outbound network calls** during normal operation.

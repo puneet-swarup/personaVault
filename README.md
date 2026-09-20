@@ -128,7 +128,7 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 
 | Version | Date | Highlights |
 |---|---|---|
-| v0.1.0 | 2025-09-20 | First working version: document ingestion (Tika + PGVector), RAG chat with streaming (Ollama + Spring AI), Spring Security login, quality toolchain, CI/CD |   
+| v0.1.0 | 2026-09-20 | First working version: document ingestion (Tika + PGVector), RAG chat with streaming (Ollama + Spring AI), Spring Security login, quality toolchain, CI/CD |   
 
 ## Phasing
 | Phase	| Scope	| Status |
@@ -205,7 +205,7 @@ xdg-open target/site/jacoco/index.html  # Linux
 - "When does my health policy renew?"
 - "What is my total annual insurance premium?"
 - "Summarize my car insurance policy terms"
-- "What medical reports do I have from 2025?"
+- "What medical reports do I have from 2026?"
 
 
 ## License

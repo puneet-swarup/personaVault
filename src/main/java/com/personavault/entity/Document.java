@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Puneet Swarup.
+ * Copyright 2026 Puneet Swarup.
  * Licensed under the PersonaVault project terms.
  */
 package com.personavault.entity;
@@ -36,7 +36,7 @@ public class Document {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    /** Original filename as uploaded (e.g., "health_policy_2025.pdf"). */
+    /** Original filename as uploaded (e.g., "health_policy_2026.pdf"). */
     @Column(name = "file_name", nullable = false, length = 512)
     private String fileName;
 
