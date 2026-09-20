@@ -1,0 +1,42 @@
+HEALTH INSURANCE POLICY
+
+Policy Number: HP-2025-00123
+Insurer: HDFC Ergo General Insurance
+Policy Type: Health (Family Floater)
+Sum Insured: 10,00,000 INR
+Annual Premium: 15,000 INR
+Premium Frequency: Annual
+
+Effective Date: 15/03/2025
+Expiry Date: 14/03/2026
+Renewal Due Date: 14/03/2026
+
+Covered Members:
+- Primary: Ramesh Kumar (DOB: 12/08/1985)
+- Spouse: Sunita Kumar (DOB: 25/11/1987)
+- Child: Aarav Kumar (DOB: 03/06/2016)
+
+Coverage Details:
+- Hospitalisation: Up to sum insured
+- Room Rent: 1000 INR per day (single private AC room)
+- Pre-hospitalisation: 30 days
+- Post-hospitalisation: 60 days
+- Day-care procedures: Covered
+- AYUSH treatment: Covered
+- Ambulance charges: Covered
+
+Exclusions:
+- Pre-existing conditions (waiting period: 2 years)
+- Cosmetic surgery
+- Maternity (waiting period: 10 months)
+- Self-inflicted injuries
+
+Claims Process:
+1. Intimation within 24 hours of admission
+2. Submit claim form within 30 days of discharge
+3. Required documents: discharge summary, bills, prescriptions, ID proof
+4. Settlement within 30 days of complete documentation
+
+Contact:
+HDFC Ergo Helpline: 1800-266-6666
+Email: claims@hdfcergo.com
