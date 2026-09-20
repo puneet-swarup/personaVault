@@ -6,8 +6,9 @@ package com.personavault.service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,11 +22,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.personavault.entity.Document;
 import com.personavault.repository.DocumentRepository;
+import com.personavault.repository.NotificationRepository;
+import com.personavault.repository.PolicyRepository;
 import com.personavault.service.IngestionService.IngestionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +64,18 @@ class IngestionServiceTest {
     @Mock
     private DocumentRepository documentRepository;
 
+    @Mock
+    private PolicyRepository policyRepository;
+
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private ExtractionService extractionService;
+
     @TempDir
     Path tempStorage;
 
@@ -69,16 +85,23 @@ class IngestionServiceTest {
 
     @BeforeEach
     void setUp() {
-        ingestionService = new IngestionService(textSplitter, vectorStore, documentRepository, tempStorage);
-        // A real plain-text file that Tika can parse
+        ingestionService = new IngestionService(
+                textSplitter,
+                vectorStore,
+                documentRepository,
+                policyRepository,
+                notificationRepository,
+                tempStorage,
+                jdbcTemplate,
+                extractionService);
         validTextFile = new MockMultipartFile(
                 "file",
-                "health_policy_2026.txt",
+                "health_policy_2025.txt",
                 "text/plain",
                 ("This is a health insurance policy document. "
-                                + "The policy number is HP-2026-00123. "
+                                + "The policy number is HP-2025-00123. "
                                 + "The annual premium is 15000 INR. "
-                                + Arrays.toString("The policy expires on 2026-03-15.".getBytes()))
+                                + "The policy expires on 2026-03-15.")
                         .getBytes());
     }
 
@@ -100,11 +123,11 @@ class IngestionServiceTest {
             });
 
             // Act
-            Document result = ingestionService.ingest(validTextFile);
+            Document result = ingestionService.ingest(validTextFile, "HEALTH_INSURANCE");
 
             // Assert: entity metadata
             assertThat(result).isNotNull();
-            assertThat(result.getFileName()).isEqualTo("health_policy_2026.txt");
+            assertThat(result.getFileName()).isEqualTo("health_policy_2025.txt");
             assertThat(result.getMimeType()).isEqualTo("text/plain");
             assertThat(result.getChunkCount()).isEqualTo(2);
             assertThat(result.getFileSizeBytes()).isEqualTo(validTextFile.getSize());
@@ -131,11 +154,11 @@ class IngestionServiceTest {
             when(documentRepository.save(any(Document.class))).thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            ingestionService.ingest(validTextFile);
+            ingestionService.ingest(validTextFile, "HEALTH_INSURANCE");
 
             // Assert: metadata was stamped
             assertThat(chunk.getMetadata()).containsKey("source");
-            assertThat(chunk.getMetadata().get("source")).isEqualTo("health_policy_2026.txt");
+            assertThat(chunk.getMetadata().get("source")).isEqualTo("health_policy_2025.txt");
             assertThat(chunk.getMetadata()).containsKey("ingestedAt");
             assertThat(chunk.getMetadata()).containsKey("documentRef");
         }
@@ -164,7 +187,7 @@ class IngestionServiceTest {
         @Test
         @DisplayName("should reject null file")
         void shouldRejectNullFile() {
-            assertThatThrownBy(() -> ingestionService.ingest(null))
+            assertThatThrownBy(() -> ingestionService.ingest(null, "HEALTH_INSURANCE"))
                     .isInstanceOf(IngestionException.class)
                     .hasMessageContaining("empty");
         }
@@ -174,7 +197,7 @@ class IngestionServiceTest {
         void shouldRejectEmptyFile() {
             MockMultipartFile empty = new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
 
-            assertThatThrownBy(() -> ingestionService.ingest(empty))
+            assertThatThrownBy(() -> ingestionService.ingest(empty, "HEALTH_INSURANCE"))
                     .isInstanceOf(IngestionException.class)
                     .hasMessageContaining("empty");
         }
@@ -187,7 +210,7 @@ class IngestionServiceTest {
             byte[] oversized = new byte[51 * 1024 * 1024];
             MockMultipartFile big = new MockMultipartFile("file", "big.pdf", contentType, oversized);
 
-            assertThatThrownBy(() -> ingestionService.ingest(big))
+            assertThatThrownBy(() -> ingestionService.ingest(big, "HEALTH_INSURANCE"))
                     .isInstanceOf(IngestionException.class)
                     .hasMessageContaining("50MB");
         }
@@ -219,7 +242,7 @@ class IngestionServiceTest {
             when(textSplitter.apply(anyList())).thenReturn(List.of(new org.springframework.ai.document.Document("x")));
             when(documentRepository.save(any(Document.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            Document result = ingestionService.ingest(noName);
+            Document result = ingestionService.ingest(noName, "HEALTH_INSURANCE");
 
             assertThat(result.getFileName()).isEqualTo("unknown");
         }
@@ -232,7 +255,7 @@ class IngestionServiceTest {
             when(textSplitter.apply(anyList())).thenReturn(List.of(new org.springframework.ai.document.Document("x")));
             when(documentRepository.save(any(Document.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            Document result = ingestionService.ingest(noType);
+            Document result = ingestionService.ingest(noType, "HEALTH_INSURANCE");
 
             assertThat(result.getMimeType()).isEqualTo("application/octet-stream");
         }
@@ -245,10 +268,76 @@ class IngestionServiceTest {
         Path badPath = tempStorage.resolve("not_a_directory");
         Files.writeString(badPath, "I am a file, not a dir");
 
-        IngestionService badService = new IngestionService(textSplitter, vectorStore, documentRepository, badPath);
+        IngestionService badService = new IngestionService(
+                textSplitter,
+                vectorStore,
+                documentRepository,
+                policyRepository,
+                notificationRepository,
+                badPath,
+                jdbcTemplate,
+                extractionService);
 
-        assertThatThrownBy(() -> badService.ingest(validTextFile))
+        assertThatThrownBy(() -> badService.ingest(validTextFile, "HEALTH_INSURANCE"))
                 .isInstanceOf(IngestionException.class)
                 .hasMessageContaining("Failed to ingest");
+    }
+
+    @Nested
+    @DisplayName("Document Deletion")
+    class DocumentDeletion {
+
+        @Test
+        @DisplayName("delete should soft-delete document, remove vectors, policies, and file")
+        void shouldCascadeDelete() throws Exception {
+            // Arrange: create a real file in tempStorage
+            Path testFile = tempStorage.resolve("a3f2b1c4_test.pdf");
+            Files.writeString(testFile, "content");
+
+            Document doc = new Document();
+            doc.setFileName("test.pdf");
+            doc.setStoredPath(testFile.toString());
+            doc.setCategory("HEALTH_INSURANCE");
+            org.springframework.test.util.ReflectionTestUtils.setField(doc, "id", 1L);
+            when(documentRepository.findById(1L)).thenReturn(Optional.of(doc));
+            when(documentRepository.save(any(Document.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            // Act
+            ingestionService.delete(1L);
+
+            // Assert: file is gone
+            assertThat(Files.exists(testFile)).isFalse();
+
+            // Assert: document is soft-deleted
+            assertThat(doc.isDeleted()).isTrue();
+            assertThat(doc.getDeletedAt()).isNotNull();
+
+            // Assert: repository save was called (soft-delete persisted)
+            verify(documentRepository).save(doc);
+        }
+
+        @Test
+        @DisplayName("delete should throw IngestionException for non-existent document")
+        void shouldThrowWhenNotFound() {
+            when(documentRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> ingestionService.delete(999L))
+                    .isInstanceOf(IngestionException.class)
+                    .hasMessageContaining("not found");
+        }
+
+        @Test
+        @DisplayName("delete should throw for already-deleted document")
+        void shouldThrowWhenAlreadyDeleted() {
+            Document doc = new Document();
+            doc.setFileName("old.pdf");
+            doc.setDeletedAt(Instant.now());
+            org.springframework.test.util.ReflectionTestUtils.setField(doc, "id", 5L);
+            when(documentRepository.findById(5L)).thenReturn(Optional.of(doc));
+
+            assertThatThrownBy(() -> ingestionService.delete(5L))
+                    .isInstanceOf(IngestionException.class)
+                    .hasMessageContaining("not found");
+        }
     }
 }

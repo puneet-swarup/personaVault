@@ -24,6 +24,7 @@ import com.personavault.repository.DocumentRepository;
 import com.personavault.service.IngestionService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -58,7 +59,7 @@ class IngestionControllerTest {
         doc.setFileName("policy.pdf");
         doc.setChunkCount(3);
         doc.setIngestedAt(Instant.now());
-        when(ingestionService.ingest(any())).thenReturn(doc);
+        when(ingestionService.ingest(any(), anyString())).thenReturn(doc);
 
         MockMultipartFile file = new MockMultipartFile("file", "policy.pdf", "application/pdf", "content".getBytes());
 
@@ -73,7 +74,7 @@ class IngestionControllerTest {
     @Test
     @DisplayName("POST /api/documents/upload returns 400 on ingestion failure")
     void uploadReturnsBadRequestOnFailure() throws Exception {
-        when(ingestionService.ingest(any()))
+        when(ingestionService.ingest(any(), anyString()))
                 .thenThrow(new IngestionService.IngestionException("File exceeds 50MB limit"));
 
         MockMultipartFile file = new MockMultipartFile("file", "big.pdf", "application/pdf", new byte[100]);
