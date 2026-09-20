@@ -7,6 +7,9 @@ package com.personavault.controller;
 import java.io.IOException;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,14 +50,16 @@ public class ChatController {
     private static final long SSE_TIMEOUT_MS = 180_000L;
 
     private final ChatClient chatClient;
+    private final VectorStore vectorStore;
 
     /**
      * Constructor injection.
      *
      * @param chatClient the RAG-enabled ChatClient (configured in AiConfig)
      */
-    public ChatController(ChatClient chatClient) {
+    public ChatController(ChatClient chatClient, VectorStore vectorStore) {
         this.chatClient = chatClient;
+        this.vectorStore = vectorStore;
     }
 
     /**
@@ -85,7 +90,17 @@ public class ChatController {
         // Handle client disconnect
         emitter.onCompletion(() -> log.debug("Chat stream completed"));
 
-        chatClient.prompt().user(request.question()).stream()
+        SearchRequest.Builder searchBuilder = SearchRequest.builder().topK(5).similarityThreshold(0.5);
+
+        if (request.category() != null && !request.category().isBlank()) {
+            searchBuilder.filterExpression("category == '" + request.category() + "'");
+        }
+
+        QuestionAnswerAdvisor advisor = QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(searchBuilder.build())
+                .build();
+
+        chatClient.prompt().user(request.question()).advisors(advisor).stream()
                 .content()
                 .subscribe(
                         chunk -> {

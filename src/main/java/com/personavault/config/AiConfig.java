@@ -5,10 +5,7 @@
 package com.personavault.config;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -72,14 +69,7 @@ public class AiConfig {
      * </ol>
      */
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder, VectorStore vectorStore) {
-        return builder.defaultSystem(SYSTEM_PROMPT)
-                .defaultAdvisors(QuestionAnswerAdvisor.builder(vectorStore)
-                        .searchRequest(SearchRequest.builder()
-                                .topK(RAG_TOP_K)
-                                .similarityThreshold(RAG_SIMILARITY_THRESHOLD)
-                                .build())
-                        .build())
-                .build();
+    public ChatClient chatClient(ChatClient.Builder builder) {
+        return builder.defaultSystem(SYSTEM_PROMPT).build();
     }
 }

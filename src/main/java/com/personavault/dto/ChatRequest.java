@@ -11,8 +11,10 @@ import jakarta.validation.constraints.Size;
  * Request DTO for the streaming chat endpoint.
  *
  * @param question the user's natural-language question
+ * @param category the category of natural-language question
  */
 public record ChatRequest(
         @NotBlank(message = "Question cannot be blank")
                 @Size(max = 2000, message = "Question too long (max 2000 chars)")
-                String question) {}
+                String question,
+        String category) {}

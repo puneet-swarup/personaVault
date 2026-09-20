@@ -267,7 +267,7 @@ public class IngestionService {
             return;
         }
         String docRef = fileName.toString().substring(0, 8);
-        jdbcTemplate.update("DELETE FROM ai_vector_store WHERE metadata->>'documentRef' = ?", docRef);
+        jdbcTemplate.update("DELETE FROM vector_store WHERE metadata->>'documentRef' = ?", docRef);
     }
 
     private void deleteFile(String storedPath) {
