@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Documents — PersonaVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-brand">PersonaVault</div>
+    <div class="nav-links">
+        <a th:href="@{/documents}" class="active">Documents</a>
+        <a th:href="@{/chat}">Chat</a>
+        <form th:action="@{/logout}" method="post" class="nav-logout">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<main class="content">
+    <h1>Documents</h1>
+
+    <!-- Drag-drop upload zone -->
+    <div id="drop-zone" class="drop-zone">
+        <p class="drop-zone-text">
+            <strong>Drag &amp; drop files here</strong><br/>
+            or click to browse
+        </p>
+        <input type="file" id="file-input" multiple
+               accept=".pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg,.txt" hidden/>
+    </div>
+
+    <!-- Upload progress area (populated by JS) -->
+    <div id="upload-progress" class="upload-progress"></div>
+
+    <!-- Document list -->
+    <h2>Ingested Documents</h2>
+    <table class="doc-table" id="doc-table">
+        <thead>
+        <tr>
+            <th>File Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Chunks</th>
+            <th>Ingested</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Populated by JS from GET /api/documents -->
+        </tbody>
+    </table>
+</main>
+
+<script th:src="@{/js/documents.js}"></script>
+</body>
+</html>

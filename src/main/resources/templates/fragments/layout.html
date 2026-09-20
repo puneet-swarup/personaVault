@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:replace="${title} ?: 'PersonaVault'">PersonaVault</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+
+<body>
+<!-- Navigation bar: shared across all pages -->
+<nav class="navbar">
+    <div class="nav-brand">PersonaVault</div>
+    <div class="nav-links">
+        <a th:href="@{/documents}" th:classappend="${active} == 'documents' ? 'active' : ''">Documents</a>
+        <a th:href="@{/chat}" th:classappend="${active} == 'chat' ? 'active' : ''">Chat</a>
+        <form th:action="@{/logout}" method="post" class="nav-logout">
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<!-- Page content: each template provides its own -->
+<main class="content">
+    <div th:fragment="content">
+        <!-- Overridden by including templates -->
+    </div>
+</main>
+
+</body>
+</html>
