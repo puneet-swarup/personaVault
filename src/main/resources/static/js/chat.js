@@ -34,7 +34,10 @@ form.addEventListener('submit', async (e) => {
         const res = await fetch('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question })
+            body: JSON.stringify({
+                question,
+                category: document.getElementById('chat-category').value || null
+            })
         });
 
         if (!res.ok) {

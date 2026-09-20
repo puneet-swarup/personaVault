@@ -23,9 +23,10 @@
 <main class="content">
     <h1>Documents</h1>
 
-    <div class="form-group" style="margin-bottom: 1rem;">
+    <!-- Category selector -->
+    <div class="category-select-wrapper" style="margin-bottom: 1.5rem;">
         <label for="category-select">Category</label>
-        <select id="category-select">
+        <select id="category-select" class="category-select">
             <option value="OTHER">Other</option>
             <option value="HEALTH_INSURANCE">Health Insurance</option>
             <option value="CAR_INSURANCE">Car Insurance</option>
@@ -46,33 +47,36 @@
 
     <!-- Drag-drop upload zone -->
     <div id="drop-zone" class="drop-zone">
+        <span class="drop-zone-icon">📄</span>
         <p class="drop-zone-text">
             <strong>Drag &amp; drop files here</strong><br/>
-            or click to browse
+            or click to browse &nbsp;·&nbsp; PDF, DOCX, XLSX, CSV, PNG, JPG
         </p>
         <input type="file" id="file-input" multiple
                accept=".pdf,.docx,.xlsx,.csv,.png,.jpg,.jpeg,.txt" hidden/>
     </div>
 
-    <!-- Upload progress area (populated by JS) -->
+    <!-- Upload progress -->
     <div id="upload-progress" class="upload-progress"></div>
 
     <!-- Document list -->
-    <h2>Ingested Documents</h2>
-    <table class="doc-table" id="doc-table">
-        <thead>
-        <tr>
-            <th>File Name</th>
-            <th>Type</th>
-            <th>Size</th>
-            <th>Chunks</th>
-            <th>Ingested</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Populated by JS from GET /api/documents -->
-        </tbody>
-    </table>
+    <h2 style="margin-top: 2rem;">Ingested Documents</h2>
+    <div class="doc-table-wrapper">
+        <table class="doc-table" id="doc-table">
+            <thead>
+            <tr>
+                <th>File Name</th>
+                <th>Category</th>
+                <th>Size</th>
+                <th>Chunks</th>
+                <th>Ingested</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </main>
 
 <script th:src="@{/js/documents.js}"></script>

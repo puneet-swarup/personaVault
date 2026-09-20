@@ -20,6 +20,27 @@
 </nav>
 
 <main class="content chat-layout">
+
+    <!-- Category filter for RAG narrowing -->
+    <div class="category-select-wrapper" style="margin-bottom: 0.75rem;">
+        <select id="chat-category" class="category-select" style="min-width: 180px;">
+            <option value="">All Categories</option>
+            <option value="HEALTH_INSURANCE">Health Insurance</option>
+            <option value="CAR_INSURANCE">Car Insurance</option>
+            <option value="LIFE_INSURANCE">Life Insurance</option>
+            <option value="HOME_INSURANCE">Home Insurance</option>
+            <option value="TRAVEL_INSURANCE">Travel Insurance</option>
+            <option value="FINANCIAL">Financial</option>
+            <option value="MEDICAL">Medical</option>
+            <option value="LEGAL">Legal</option>
+            <option value="IDENTITY">Identity</option>
+            <option value="EMPLOYMENT">Employment</option>
+            <option value="EDUCATION">Education</option>
+            <option value="REAL_ESTATE">Real Estate</option>
+            <option value="FAMILY">Family</option>
+            <option value="VEHICLE">Vehicle</option>
+        </select>
+    </div>
     <!-- Chat message log -->
     <div id="chat-log" class="chat-log">
         <div class="message bot">

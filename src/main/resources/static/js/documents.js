@@ -99,11 +99,12 @@ async function loadDocuments() {
         for (const doc of docs) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${doc.fileName}</td>
-                <td>${doc.mimeType}</td>
+                <td style="font-weight: 500;">${doc.fileName}</td>
+                <td><span class="category-badge ${doc.category}">${formatCategory(doc.category)}</span></td>
                 <td>${formatSize(doc.fileSizeBytes)}</td>
                 <td>${doc.chunkCount}</td>
-                <td>${new Date(doc.ingestedAt).toLocaleString('en-IN')}</td>
+                <td>${new Date(doc.ingestedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                <td style="text-align: right;"><button class="btn-delete" data-id="${doc.id}" title="Delete document">🗑️</button></td>
             `;
             docTableBody.appendChild(tr);
         }
@@ -111,6 +112,34 @@ async function loadDocuments() {
         console.error('Failed to load documents:', e);
     }
 }
+
+docTableBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-delete');
+    if (!btn) {
+        return;
+    }
+    const id = btn.dataset.id;
+    if (!confirm('Delete this document? This cannot be undone.')) {
+        return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+    try {
+        const res = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadDocuments();
+        } else {
+            const err = await res.json();
+            alert(`Delete failed: ${err.message}`);
+            btn.disabled = false;
+            btn.textContent = 'Delete';
+        }
+    } catch (err) {
+        alert(`Delete failed: ${err.message}`);
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+    }
+});
 
 /**
  * Formats a byte count into a human-readable string (KB, MB).
@@ -123,6 +152,17 @@ function formatSize(bytes) {
     if (bytes < 1000) return bytes + ' B';
     if (bytes < 1_000_000) return (bytes / 1000).toFixed(1) + ' KB';
     return (bytes / 1_000_000).toFixed(1) + ' MB';
+}
+
+/**
+ * Converts a category enum value to a display-friendly label.
+ * e.g., "HEALTH_INSURANCE" → "Health Insurance"
+ */
+function formatCategory(cat) {
+    if (!cat) {
+        return 'Other';
+    }
+    return cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // Initial load
