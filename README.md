@@ -122,7 +122,10 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 | [008](docs/adr/008-aes-256-gcm-field-encryption.md) | AES-256-GCM field-level encryption |
 | [009](docs/adr/009-in-memory-user-form-login.md) | In-memory user with form login |
 | [010](docs/adr/010-bcrypt-password-encoding.md) | Bcrypt password encoding |
-
+| [011](docs/adr/011-async-extraction.md) | Async extraction over synchronous |
+| [012](docs/adr/012-configurable-alert-thresholds.md) | Configurable alert thresholds (DB + cache) |
+| [013](docs/adr/013-document-deletion-cascade.md) | Document deletion cascade |
+| [014](docs/adr/014-notification-channel-abstraction.md) | Notification channel abstraction (strategy pattern) |   
 
 ## Releases
 
@@ -134,7 +137,7 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 | Phase	| Scope	| Status |
 |----|----|----|
 | 1	| Ingestion + Q&A (insurance & financial docs) |	✅ Complete (v0.1.0) |
-| 2	| Structured extraction + renewal alerts + dashboard | ⬜ |
+| 2	| Structured extraction + renewal alerts + dashboard + deletion + category | 🚧 In Progress |
 | 3	| Medical docs + document management + manual corrections |	⬜ |
 | 4	| OCR hardening, email alerts, export/wipe, security hardening | ⬜ |
 
@@ -151,12 +154,12 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 ```
 src/main/java/com/personavault/
 ├── PersonaVaultApplication.java
-├── config/          ← Security, AI, scheduling config
+├── config/          ← Security, AI, Async, Storage
 ├── controller/      ← REST + Thymeleaf controllers
-├── service/         ← Ingestion, chat, renewal, notification
+├── service/         ← Ingestion, Extraction, Chat, Renewal, Notification
 ├── repository/      ← JPA repositories
-├── entity/          ← JPA entities (Policy, Document, Notification)
-└── dto/             ← Request/response records   
+├── entity/          ← Policy, Document, Notification, AlertThreshold, DocumentCategory
+└── dto/             ← Request/response records     
 ```
 
 ## Code Quality
@@ -200,13 +203,34 @@ xdg-open target/site/jacoco/index.html  # Linux
 3. **Ask questions** — Go to Chat page, type a question in plain English
 4. **Get grounded answers** — Responses cite source documents; exact dates/amounts come from the structured database
 
+## Features
+
+### Document Ingestion
+- Drag-drop upload with category classification (15 categories)
+- Async structured extraction: policy numbers, dates, premiums auto-extracted
+- Re-upload: delete old → upload new (clean slate)
+
+### RAG Chat
+- Category-filtered retrieval: ask health questions, only search health docs
+- Grounded answers with source citations
+- "I don't have this information" for out-of-scope questions
+
+### Renewal Alerts
+- Daily check at 8:00 AM IST
+- Per-type configurable thresholds (Health: 60d, Car: 30d, Life: 90d)
+- In-app notifications with verified/unverified distinction
+
+### Document Management
+- Browse, filter by category
+- Delete with full cascade (vectors, policies, notifications, file)
+- Audit trail (soft-deleted rows retained)
+
 ### Example Questions
 
 - "When does my health policy renew?"
 - "What is my total annual insurance premium?"
 - "Summarize my car insurance policy terms"
 - "What medical reports do I have from 2026?"
-
 
 ## License
 All rights reserved. This project is published for educational and portfolio purposes.

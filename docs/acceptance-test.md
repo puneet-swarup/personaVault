@@ -47,3 +47,32 @@ Run this after `docker compose up -d` + `ollama serve` + `mvn spring-boot:run`.
 1. Disable network (or stop Ollama temporarily, then restart it)
 2. Ask a question → works (no outbound calls)
 3. Confirm in browser DevTools → Network tab: zero requests to external domains   
+
+## Phase 2 Tests
+
+### Test 7: Structured Extraction
+1. Upload `sample_health_policy.txt` with category "Health Insurance"
+2. Wait 10-30s (async extraction)
+3. **Expected:** `policies` table has a row with `policyNumber=HP-2025-00123`, `expiryDate=2026-03-14`, `verified=false`
+4. Verify: `docker exec -it personavault-db psql -U personavault -d personavault -c "SELECT * FROM policies;"`
+
+### Test 8: Category-Filtered Chat
+1. Upload a health policy AND a car policy
+2. In Chat, select category "Health Insurance"
+3. Ask: "What is my policy number?"
+4. **Expected:** Returns ONLY the health policy number (not car)
+
+### Test 9: Delete Cascade
+1. Upload a document → wait for extraction
+2. Verify policy exists in DB
+3. Click Delete → confirm
+4. **Expected:** Document gone from list, policy row deleted, file gone from `./data/documents/`, vectors gone from `ai_vector_store`
+5. Ask a question about the deleted doc → "I don't have this information"
+
+### Test 10: Renewal Alert
+1. Manually insert a policy with expiry in 20 days:
+   ```sql
+   INSERT INTO policies (policy_number, insurer_name, policy_type, expiry_date, annual_premium, document_id, verified)
+   VALUES ('TEST-001', 'Test Insurer', 'HEALTH', CURRENT_DATE + 20, 15000, 1, true);   
+2. Wait for next 8 AM (or restart app to trigger startup catch-up)
+3. Expected: Notification in DB: SELECT * FROM notifications WHERE type='RENEWAL';
