@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.personavault.service.IngestionService.IngestionException;
 
@@ -35,6 +36,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleIngestion(IngestionException ex) {
         log.warn("Ingestion failed: {}", ex.getMessage());
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    /**
+     * Handles missing static resources (favicon, 404 pages) without
+     * logging at ERROR level.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResource(NoResourceFoundException ex) {
+        log.debug("Resource not found: {}", ex.getResourcePath());
+        return ResponseEntity.notFound().build();
     }
 
     /**
