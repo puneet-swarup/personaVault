@@ -112,19 +112,28 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 
 | # | Decision |
 |---|---|
-| 001 |	Local LLM (Ollama) over cloud API |
-| 002 |	PostgreSQL + PGVector over Chroma/Qdrant |
-| 003 |	Thymeleaf + vanilla JS + SSE over React/HTMX |
-| 004 |	Local filesystem over MinIO |
-| 005 |	Spring AI over LangChain4j |
-| 006 |	@Scheduled over db-scheduler (v1) |
-| 007 |	Structured extraction over pure RAG for exact facts |
-| 008 |	AES-256-GCM field-level encryption |
+| [001](docs/adr/001-local-llm-over-cloud.md) | Local LLM (Ollama) over cloud API |
+| [002](docs/adr/002-pgvector-over-chroma-qdrant.md) | PostgreSQL + PGVector over Chroma/Qdrant |
+| [003](docs/adr/003-thymeleaf-vanilla-js-over-react-htmx.md) | Thymeleaf + vanilla JS + SSE over React/HTMX |
+| [004](docs/adr/004-local-filesystem-over-minio.md) | Local filesystem over MinIO |
+| [005](docs/adr/005-spring-ai-over-langchain4j.md) | Spring AI over LangChain4j |
+| [006](docs/adr/006-scheduled-over-dbscheduler-v1.md) | @Scheduled over db-scheduler (v1) |
+| [007](docs/adr/007-structured-extraction-over-pure-rag.md) | Structured extraction over pure RAG for exact facts |
+| [008](docs/adr/008-aes-256-gcm-field-encryption.md) | AES-256-GCM field-level encryption |
+| [009](docs/adr/009-in-memory-user-form-login.md) | In-memory user with form login |
+| [010](docs/adr/010-bcrypt-password-encoding.md) | Bcrypt password encoding |
+
+
+## Releases
+
+| Version | Date | Highlights |
+|---|---|---|
+| v0.1.0 | 2025-09-20 | First working version: document ingestion (Tika + PGVector), RAG chat with streaming (Ollama + Spring AI), Spring Security login, quality toolchain, CI/CD |   
 
 ## Phasing
 | Phase	| Scope	| Status |
 |----|----|----|
-| 1	| Ingestion + Q&A (insurance & financial docs) |	🚧 In Progress |
+| 1	| Ingestion + Q&A (insurance & financial docs) |	✅ Complete (v0.1.0) |
 | 2	| Structured extraction + renewal alerts + dashboard | ⬜ |
 | 3	| Medical docs + document management + manual corrections |	⬜ |
 | 4	| OCR hardening, email alerts, export/wipe, security hardening | ⬜ |
