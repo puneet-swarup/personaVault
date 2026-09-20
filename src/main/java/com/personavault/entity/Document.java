@@ -68,6 +68,10 @@ public class Document {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    /** Primary domain classification for RAG narrowing. */
+    @Column(name = "category", nullable = false, length = 50)
+    private String category;
+
     /**
      * Returns true if this document has been soft-deleted.
      */
