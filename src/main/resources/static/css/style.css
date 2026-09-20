@@ -269,3 +269,14 @@ body {
     border-radius: 4px;
     font-size: 0.9rem;
 }
+
+.message.bot.thinking .message-text {
+    color: #888;
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}

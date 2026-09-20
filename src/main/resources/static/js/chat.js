@@ -27,6 +27,8 @@ form.addEventListener('submit', async (e) => {
 
     // Prepare bot message container (will be filled by stream)
     const botEl = appendMessage('bot', '');
+    botEl.querySelector('.message-text').textContent = 'Searching your documents…';
+    botEl.classList.add('thinking');
 
     try {
         const res = await fetch('/api/chat/stream', {
@@ -58,12 +60,16 @@ form.addEventListener('submit', async (e) => {
             sseBuffer = frames.pop(); // Last element is incomplete (or empty)
 
             for (const frame of frames) {
-                // Strip "data: " prefix from each SSE frame
-                const data = frame.replace(/^data:\s*/, '').trim();
+                const data = frame.replace(/^data:[ ]?/, '');
                 if (data) {
+                    if (answer === '') {
+                        // First token received — remove thinking indicator
+                        botEl.classList.remove('thinking');
+                        botEl.querySelector('.message-text').textContent = '';
+                    }
                     answer += data;
                     botEl.querySelector('.message-text').textContent = answer;
-                    log.scrollTop = log.scrollHeight; // Auto-scroll
+                    log.scrollTop = log.scrollHeight;
                 }
             }
         }
