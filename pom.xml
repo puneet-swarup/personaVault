@@ -15,6 +15,13 @@
   <name>PersonaVault</name>
   <description>Local-first, single-user personal document assistant with RAG over personal docs</description>
 
+  <licenses>
+    <license>
+      <name>PolyForm Noncommercial License 1.0.0</name>
+      <url>https://polyformproject.org/licenses/noncommercial/1.0.0/</url>
+    </license>
+  </licenses>
+
   <properties>
     <java.version>21</java.version>
     <!-- Build host runs JDK 25; Lombok 1.18.36 (Spring Boot default) cannot
