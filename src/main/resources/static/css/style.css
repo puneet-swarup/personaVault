@@ -21,8 +21,19 @@ body {
 }
 
 .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     font-size: 1.25rem;
     font-weight: 700;
+}
+
+.nav-mark {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .nav-links {
@@ -346,6 +357,14 @@ body {
     justify-content: center;
     min-height: 100vh;
     background: #1a1a2e;
+}
+
+.login-mark {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 0.75rem;
+    border-radius: 14px;
 }
 
 .login-card {

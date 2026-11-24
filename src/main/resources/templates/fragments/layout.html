@@ -6,12 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:replace="${title} ?: 'PersonaVault'">PersonaVault</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="icon" type="image/svg+xml" th:href="@{/icon.svg}"/>
+    <link rel="icon" type="image/png" sizes="192x192" th:href="@{/icon-192.png}"/>
 </head>
 
 <body>
 <!-- Navigation bar: shared across all pages -->
 <nav class="navbar">
-    <div class="nav-brand">PersonaVault</div>
+        <div class="nav-brand">
+        <img th:src="@{/icon.svg}" class="nav-mark" width="24" height="24" alt=""/>
+        <span>PersonaVault</span>
+    </div>
     <div class="nav-links">
         <a th:href="@{/documents}" th:classappend="${active} == 'documents' ? 'active' : ''">Documents</a>
         <a th:href="@{/chat}" th:classappend="${active} == 'chat' ? 'active' : ''">Chat</a>

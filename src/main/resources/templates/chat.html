@@ -5,11 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Chat — PersonaVault</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="icon" type="image/svg+xml" th:href="@{/icon.svg}"/>
+    <link rel="icon" type="image/png" sizes="192x192" th:href="@{/icon-192.png}"/>
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="nav-brand">PersonaVault</div>
+        <div class="nav-brand">
+        <img th:src="@{/icon.svg}" class="nav-mark" width="24" height="24" alt=""/>
+        <span>PersonaVault</span>
+    </div>
     <div class="nav-links">
         <a th:href="@{/documents}">Documents</a>
         <a th:href="@{/chat}" class="active">Chat</a>

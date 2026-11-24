@@ -1,5 +1,7 @@
 # PersonaVault
 
+<img src="src/main/resources/static/icon-512.png" alt="PersonaVault" width="96" height="96"/>
+
 **Local-first, single-user personal document assistant.**
 
 Ask questions about your insurance policies, financial records, and medical history in plain English — get grounded, cited answers. Proactive alerts for renewals and deadlines.
@@ -99,6 +101,10 @@ After cloning, run once:
 ```bash
 git config core.hooksPath scripts/hooks   
 ```
+
+The app icon lives in `src/main/resources/static/icon.svg` (a person at the centre of a
+vault door). `scripts/generate-icons.py` derives `favicon.ico` and the PNG set from it —
+run it after editing the SVG (`pip install cairosvg pillow`).
 
 ## Knowledge Vault & Wiki
 
