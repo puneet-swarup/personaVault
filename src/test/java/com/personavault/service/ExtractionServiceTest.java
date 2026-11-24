@@ -54,11 +54,18 @@ class ExtractionServiceTest {
     @Mock
     private Executor extractionExecutor;
 
+    @Mock
+    private FactIngestionService factIngestionService;
+
+    @Mock
+    private WikiCompilerService wikiCompilerService;
+
     private ExtractionService extractionService;
 
     @BeforeEach
     void setUp() {
-        extractionService = new ExtractionService(chatClient, policyRepository, extractionExecutor);
+        extractionService = new ExtractionService(
+                chatClient, policyRepository, extractionExecutor, factIngestionService, wikiCompilerService);
     }
 
     @Nested

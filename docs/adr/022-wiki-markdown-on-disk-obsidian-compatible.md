@@ -1,7 +1,10 @@
 # ADR-022: Wiki as Markdown-on-Disk with Provenance (Obsidian-Compatible)
 
 ## Status
-Proposed (2026-10-29)
+Accepted (2026-11-24) — increment 1 implemented: deterministic compiler, markdown files,
+`wiki_page` mirror, provenance validator, incremental + nightly compile.
+Deferred: LLM narrative pass, `WikiController` (in-app reading), contradiction-driven
+`needsReview`, `.obsidian/` starter config (blocked by `data/` being gitignored).
 
 ## Context
 ADR-015 requires a persistent synthesis layer. Options range from a custom in-app wiki UI to a graph database to plain markdown files.
@@ -108,6 +111,40 @@ The repo ships a minimal `.obsidian/` directory (graph view enabled, CSS snippet
 | Graph database (Neo4j/AGE) | Overkill for single-user; Postgres + markdown links suffice |
 | DB-only markdown blobs | Not greppable or Obsidian-openable; opaque |
 | HTML pages generated from DB | Not editable; poor diff |
+
+## Implementation notes (increment 1, 2026-11-24)
+
+What landed, and the two places the implementation departs from the sketch above.
+
+**Pieces**
+| Class | Role |
+|---|---|
+| `WikiSlugger` | deterministic slug: file name, mirror PK, wikilink target |
+| `WikiMarkdownRenderer` | facts + links -> markdown with frontmatter and `[^f:<id>]` footnotes |
+| `WikiPageValidator` | rejects a page with an uncited claim line (provenance gate) |
+| `WikiFileStore` | atomic LF writes under `./data/wiki/<type>/<slug>.md` |
+| `WikiIndexBuilder` | regenerates `index.md` from the mirror |
+| `WikiCompilerService` | `compileEntity`, `compileForDocument`, nightly `compileAll` |
+| `FactIngestionService` | extraction output -> `entity` + `fact` rows (fills Tier 2) |
+
+**Rendering is deterministic, not LLM-authored (yet).** A page is a current-values table,
+a `## History` section for superseded facts, `## Links` for entity references, and a
+`## Sources` footnote block. Same facts in, same bytes out — which is what makes the
+provenance rule testable. A narrative pass can layer on top later; it must keep the
+footnotes or the validator rejects the page.
+
+**Departures from the sketch**
+1. `fact_refs` / `source_refs` are **not** columns on `wiki_page`. They live in the page
+   frontmatter, which is canonical, so duplicating them in a `bigint[]` column would create
+   a second source of truth. Add them as derived columns only if a query needs them.
+2. `.obsidian/` is not shipped in the repo because the wiki root (`./data/wiki`) is
+   gitignored along with the rest of `data/`. The folder still opens as an Obsidian vault;
+   it just starts without the pre-baked graph/CSS settings.
+
+**Trigger points.** Ingestion -> async extraction -> `FactIngestionService` -> 
+`WikiCompilerService.compileForDocument(docId)` (incremental, 1-3 pages). A `@Scheduled`
+`compileAll` runs at 02:30 daily as the drift safety net. Compile failures are logged and
+never lose an extraction that already succeeded.
 
 ## Related
 ADR-015, ADR-021 (provenance), ADR-023 (routing), ADR-026 (cascade)

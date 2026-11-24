@@ -73,11 +73,20 @@ public class ExtractionService {
     private final ChatClient chatClient;
     private final PolicyRepository policyRepository;
     private final Executor extractionExecutor;
+    private final FactIngestionService factIngestionService;
+    private final WikiCompilerService wikiCompilerService;
 
-    public ExtractionService(ChatClient chatClient, PolicyRepository policyRepository, Executor extractionExecutor) {
+    public ExtractionService(
+            ChatClient chatClient,
+            PolicyRepository policyRepository,
+            Executor extractionExecutor,
+            FactIngestionService factIngestionService,
+            WikiCompilerService wikiCompilerService) {
         this.chatClient = chatClient;
         this.policyRepository = policyRepository;
         this.extractionExecutor = extractionExecutor;
+        this.factIngestionService = factIngestionService;
+        this.wikiCompilerService = wikiCompilerService;
     }
 
     /**
@@ -98,6 +107,7 @@ public class ExtractionService {
             if (policy != null) {
                 policyRepository.save(policy);
                 log.info("Extraction complete: {} ({})", policy.getPolicyNumber(), policy.getPolicyType());
+                populateVault(documentId, policy);
             } else {
                 log.info("Extraction produced no policy data for document {}", documentId);
             }
@@ -112,6 +122,26 @@ public class ExtractionService {
      * @param rawText the full document text
      * @return the LLM's JSON response (may be null or malformed)
      */
+    /**
+     * Mirrors an extracted policy into the vault (Tier 2) and recompiles its wiki page
+     * (Tier 3).
+     *
+     * <p>Failure here must not lose the extraction that already succeeded, so problems are
+     * logged rather than rethrown; the nightly recompile retries the wiki side (ADR-022).
+     *
+     * @param documentId the source document
+     * @param policy the extracted policy
+     */
+    private void populateVault(Long documentId, Policy policy) {
+        try {
+            factIngestionService.recordPolicyFacts(documentId, policy);
+            int pages = wikiCompilerService.compileForDocument(documentId);
+            log.info("Vault updated for document {}: {} wiki page(s) compiled", documentId, pages);
+        } catch (RuntimeException e) {
+            log.error("Vault/wiki update failed for document {} (extraction kept): {}", documentId, e.getMessage(), e);
+        }
+    }
+
     private String callLlm(String rawText) {
         String truncated = rawText.length() > MAX_TEXT_LENGTH ? rawText.substring(0, MAX_TEXT_LENGTH) : rawText;
 
