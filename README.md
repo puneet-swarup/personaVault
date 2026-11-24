@@ -26,7 +26,10 @@ Browser (Thymeleaf + vanilla JS + SSE)
 │
 ▼
 Spring Boot 3.4
-├── ChatController → ChatClient + QuestionAnswerAdvisor → Ollama
+├── ChatController → AnswerService (ADR-023 router)
+│                      ├── wiki page found → answer from ./data/wiki/ page (Tier 3)
+│                      └── no page        → QuestionAnswerAdvisor → PGVector (Tier 1)
+│                    → Ollama
 ├── IngestionController → Tika → TokenTextSplitter → VectorStore
 ├── RenewalCheckerService (@Scheduled, daily 8 AM)
 ├── DocumentController
@@ -127,6 +130,11 @@ and the compiler refuses to write a page whose claims are uncited:
 [^f:2]: from policy_hdfc.pdf, page 2
 ```
 
+Chat answers from the wiki first: an exact-value question ("when does my policy expire")
+or a synthesis question ("how has my coverage changed") is answered from the compiled page,
+with its footnotes, and only falls back to document search when no page matches. The reply
+carries a chip saying which tier answered.
+
 Open `./data/wiki/` as a vault in [Obsidian](https://obsidian.md) for graph view,
 backlinks and search. The files are canonical: edit them by hand and the next nightly
 recompile (02:30) rewrites them from facts — so treat hand edits as comments to yourself,
@@ -206,7 +214,7 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 | 1	| Ingestion + Q&A (insurance & financial docs) |	✅ Complete (v0.1.0) |
 | 2	| Structured extraction + renewal alerts + dashboard + deletion + category | 🚧 In Progress |
 | 2.5 | Vault foundation: generic entity/fact model, wiki skeleton, Obsidian vault (ADR-015–017) | 🚧 In Progress — entity/fact model, wiki compiler, markdown vault, provenance validator (ADR-022) |
-| 3 | Schema registry (Financial, Medical, ID), wiki compiler, contradiction queue, corrections UI (ADR-018–021, 024) |	⬜ |
+| 3 | Schema registry (Financial, Medical, ID), wiki compiler, contradiction queue, corrections UI (ADR-018–021, 024) |	🚧 In Progress — wiki compiler (ADR-022) and wiki-aware chat routing (ADR-023) landed |
 | 4 | Wiki-aware chat (intent router), telemetry dashboard, recompile endpoint, export/wipe, security hardening (ADR-023, 025) | ⬜ |
 | 5 | Domain expansion: Medical deep, Financial deep, timeline pages (ADR-027) | ⬜ |
 

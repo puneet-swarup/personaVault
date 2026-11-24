@@ -126,3 +126,33 @@ Run this after `docker compose up -d` + `ollama serve` + `mvn spring-boot:run`.
 1. In Obsidian: *Open folder as vault* -> select `./data/wiki`
 2. **Expected:** pages open, `[[wikilinks]]` resolve, graph view shows entity nodes
 3. **Expected:** hand-editing a page does not break the app; the next recompile overwrites it
+
+## Phase 3 Tests — Wiki-Aware Chat (ADR-023)
+
+### Test 16: Exact-value question answered from the wiki page
+1. Ensure Test 12 passed (a page exists for your policy)
+2. In Chat, ask: "When does my HP-2025-00123 policy expire?"
+3. **Expected:** a chip above the answer reads "Answered from wiki page: HP-2025-00123"
+4. **Expected:** the answer states the expiry date with a `[^f:…]` marker, and the date matches
+   the `expiryDate` row in `./data/wiki/entity/policy-hp-2025-00123.md`
+5. **Expected:** app log shows `Routing: FACT answered from wiki page 'policy-hp-2025-00123'`
+
+### Test 17: Synthesis question answered from the page's History section
+1. After Test 14 (a premium change created history), ask:
+   "How has my premium changed?"
+2. **Expected:** chip reads "Answered from wiki page: …"
+3. **Expected:** the answer names both the old and the new premium and when each applied —
+   the values only exist together on that page, not in any single document chunk
+4. **Expected:** no vector search happens (log shows no `QuestionAnswerAdvisor` retrieval)
+
+### Test 18: Unrelated question still falls back to document search
+1. Ask: "What are the exclusions in the maternity clause?"
+2. **Expected:** chip reads "Answered from your documents"
+3. **Expected:** the answer still cites the source document, exactly as before this change
+
+### Test 19: Vault empty → behaviour unchanged
+1. Stop the app, `mv data/wiki data/wiki.bak`, restart
+2. Ask "When does my policy expire?"
+3. **Expected:** chip reads "Answered from your documents" — the app degrades to pre-vault
+   behaviour rather than failing
+4. Restore: `mv data/wiki.bak data/wiki`
