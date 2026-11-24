@@ -28,8 +28,7 @@ public class AiConfig {
     private static final int RAG_TOP_K = 5;
     private static final double RAG_SIMILARITY_THRESHOLD = 0.50;
 
-    private static final String SYSTEM_PROMPT =
-            """
+    private static final String SYSTEM_PROMPT = """
         You are a personal assistant with access to the user's documents \
         (insurance policies, financial records, medical history). \
         Only derive information from the provided context. \

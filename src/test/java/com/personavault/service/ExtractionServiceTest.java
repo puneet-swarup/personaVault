@@ -68,8 +68,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should parse valid JSON with all fields and build complete Policy")
         void shouldParseValidJsonWithAllFields() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "HP-2025-00123",
                   "insurerName": "HDFC Ergo",
@@ -99,8 +98,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle DD/MM/YYYY date format (Indian convention)")
         void shouldHandleIndianDateFormat() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "CV-2025-00456",
                   "insurerName": "ICICI Lombard",
@@ -145,8 +143,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle Indian number format with commas (e.g., 1,50,000)")
         void shouldHandleIndianNumberFormat() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "L-1",
                   "insurerName": "SBI Life",
@@ -167,8 +164,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle decimal premium values")
         void shouldHandleDecimalPremium() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "H-10",
                   "insurerName": "Star Health",
@@ -194,8 +190,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should default policyType to OTHER when missing")
         void shouldDefaultPolicyType() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-99",
                   "expiryDate": "2027-01-01"
@@ -211,8 +206,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle null effectiveDate gracefully")
         void shouldHandleNullEffectiveDate() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-100",
                   "expiryDate": "2026-12-31",
@@ -230,8 +224,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle null premium gracefully")
         void shouldHandleNullPremium() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-101",
                   "expiryDate": "2026-08-15",
@@ -248,8 +241,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle null insurerName gracefully")
         void shouldHandleNullInsurer() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-102",
                   "expiryDate": "2026-09-01",
@@ -266,8 +258,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should handle whitespace-only string values as null")
         void shouldHandleWhitespaceStrings() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "  ",
                   "expiryDate": "2026-10-10",
@@ -320,8 +311,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should return null when no policyNumber AND no expiryDate")
         void shouldReturnNullWhenNoKeyFields() {
-            String json =
-                    """
+            String json = """
                 {
                   "insurerName": "Some Company",
                   "policyType": "OTHER"
@@ -335,8 +325,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should return null for unparseable date format")
         void shouldReturnNullOnUnparseableDate() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-200",
                   "expiryDate": "not-a-date"
@@ -353,8 +342,7 @@ class ExtractionServiceTest {
         @Test
         @DisplayName("should return null for unparseable premium format")
         void shouldHandleUnparseablePremium() {
-            String json =
-                    """
+            String json = """
                 {
                   "policyNumber": "X-201",
                   "expiryDate": "2026-05-01",

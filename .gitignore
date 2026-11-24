@@ -33,3 +33,31 @@ logs/
 # Quality tool reports (generated during mvn verify)
 target/site/
 *.exec
+.forge-permissions.json
+
+# Forge Agent session memory (never commit)
+SESSION_CONTEXT.md
+
+# Chromium/Forge agent browser profile artifacts (never commit)
+Crashpad/
+Default/
+GPUPersistentCache/
+GrShaderCache/
+ShaderCache/
+Variations
+Safe Browsing/
+component_crx_cache/
+extensions_crx_cache/
+segmentation_platform/
+BrowserMetrics-spare.pma
+first_party_sets.db
+first_party_sets.db-journal
+instance.json
+lockfile
+Last Browser
+Last Version
+Local State
+Last Browser
+Last Version
+Local State
+

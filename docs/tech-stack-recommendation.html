@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Recommendation on whether PersonaVault should change its Java, Spring Boot and Spring AI tech stack.">
+<title>Tech Stack: Should You Change It? · PersonaVault</title>
+<style>
+:root{
+  --bg:#fbfaf8; --surface:#fff; --text:#1b1b1b; --muted:#4a4a4a;
+  --border:#d9d5cf; --accent:#0b5d4b; --on-accent:#fff;
+  --code-bg:#f1efeb; --stripe:#f6f4f0; --focus:#1a56db;
+  --ok-bg:#eef7f2; --ok-border:#0b5d4b; --note-bg:#fff8ec; --note-border:#9a5b00;
+  --radius:10px;
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12151a; --surface:#1a1f26; --text:#eef1f5; --muted:#b9c1cb;
+    --border:#333c47; --accent:#34d399; --on-accent:#06231d;
+    --code-bg:#232a33; --stripe:#1f252d; --focus:#7aa2ff;
+    --ok-bg:#12251e; --ok-border:#34d399; --note-bg:#2a2213; --note-border:#f0b429;
+  }
+}
+,::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:1.0625rem;line-height:1.65}
+.skip-link{position:absolute;left:1rem;top:-4rem;z-index:10;background:var(--accent);color:var(--on-accent);padding:.6rem 1rem;border-radius:0 0 var(--radius) var(--radius);text-decoration:none;font-weight:700}
+.skip-link:focus{top:0}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.page-header{max-width:76ch;margin:0 auto;padding:3rem 1.25rem 1rem}
+.eyebrow{margin:0 0 .5rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{margin:0 0 .5rem;font-size:clamp(1.7rem,1.2rem + 2.2vw,2.4rem);line-height:1.2;letter-spacing:-.01em}
+.subtitle{margin:0;color:var(--muted)}
+main{max-width:76ch;margin:0 auto;padding:0 1.25rem 2rem}
+article>section{margin-block:2.5rem}
+h2{margin:0 0 .75rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);font-size:1.35rem;line-height:1.3}
+p{margin:0 0 1rem}
+ul,ol{margin:0 0 1rem;padding-left:1.4rem}
+li{margin:.4rem 0}
+strong{font-weight:700}
+code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:.12em .35em;border-radius:4px;overflow-wrap:anywhere}
+.callout{margin:1.25rem 0;padding:1rem 1.15rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.callout--verdict{border-left:6px solid var(--ok-border);background:var(--ok-bg)}
+.callout--note{border-left:6px solid var(--note-border);background:var(--note-bg)}
+.callout p:last-child{margin-bottom:0}
+.table-scroll{margin:1rem 0 1.5rem;overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:.98rem}
+caption{caption-side:top;padding:.8rem 1rem .4rem;text-align:left;font-weight:700;color:var(--text)}
+th,td{padding:.7rem .9rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+thead th{background:var(--code-bg);color:var(--muted);font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+tbody th{font-weight:600;width:32%}
+tbody tr:nth-child(even){background:var(--stripe)}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
+.page-footer{max-width:76ch;margin:0 auto;padding:1.5rem 1.25rem 3rem;border-top:1px solid var(--border);color:var(--muted);font-size:.9rem}
+.page-footer p{margin:.25rem 0}
+@media (max-width:42rem){
+  body{font-size:1rem}
+  .page-header{padding-top:2rem}
+  tbody th{width:auto}
+  th,td{padding:.6rem .7rem}
+}
+@media print{
+  .skip-link{display:none}
+  body{background:#fff;color:#000;font-size:11pt}
+  .table-scroll{overflow:visible;border-color:#000}
+  thead th{background:#eee;color:#000}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="page-header">
+  <p class="eyebrow">Decision record · 2026-10-29</p>
+  <h1>Tech Stack: Should You Change It?</h1>
+  <p class="subtitle">An honest assessment of Java 21, Spring Boot 3.4 and Spring AI for the PersonaVault knowledge vault.</p>
+</header>
+
+<main id="main">
+<article>
+
+<section aria-labelledby="verdict">
+  <h2 id="verdict">Verdict</h2>
+  <div class="callout callout--verdict">
+    <p><strong>Stay on Java 21, Spring Boot 3.4 and Spring AI. No change is needed.</strong></p>
+    <p>The stack is not the bottleneck. The differentiator is the design, not the language or framework.</p>
+  </div>
+  <p>This started as a practice project, but the stack you chose happens to be genuinely well suited to where the product is heading. Below is the reasoning, including where the friction really is and which small additions are worthwhile.</p>
+</section>
+
+<section aria-labelledby="fit">
+  <h2 id="fit">Why the current stack fits the vault</h2>
+  <div class="table-scroll">
+    <table>
+      <caption>Requirement to existing capability</caption>
+      <thead>
+        <tr><th scope="col">Requirement</th><th scope="col">Why Java and Spring Boot already win</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Local-first, single-user, offline</th><td>Ollama, PGVector and a local filesystem are stack-agnostic; Spring configuration and environment handling are mature.</td></tr>
+        <tr><th scope="row">Data integrity: facts, provenance, contradictions</th><td>JPA, Flyway and Postgres transactions are exactly the right tools. This is relational work, and Java's typing discipline helps enforce it.</td></tr>
+        <tr><th scope="row">Schema-driven extraction across many domains</th><td>Spring dependency injection with list injection, already used for the notification channels, is a clean polymorphism mechanism: one interface, many implementations.</td></tr>
+        <tr><th scope="row">Async pipelines: extraction, wiki compilation</th><td>The async executor configuration is already in place and extends naturally to the wiki compiler.</td></tr>
+        <tr><th scope="row">Scheduled jobs: renewals, nightly recompile</th><td>The existing scheduled checker pattern covers it.</td></tr>
+        <tr><th scope="row">Testability and quality gates</th><td>The JaCoCo, SpotBugs, PMD and Checkstyle setup is a real asset for a trust-first product.</td></tr>
+        <tr><th scope="row">Long-lived personal data</th><td>The JVM and Postgres are boring, stable and will still run in ten years, which suits a vault you keep.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="friction">
+  <h2 id="friction">Where the friction actually is</h2>
+  <ol>
+    <li><strong>Authoring tooling, not the language.</strong> The assistant's file-writing tools strip Markdown formatting, so documentation is being authored as HTML. This is an environment quirk, not a product or stack problem.</li>
+    <li><strong>Model-orchestration ergonomics.</strong> Python has more tutorials, but Spring AI 1.0 is stable and covers advisors, vector stores, structured output and tool calling. Switching would mean rewriting working code for marginal gain.</li>
+    <li><strong>Prompt iteration speed.</strong> Slightly faster in notebooks, but prompts can be prototyped in any tool and ported back.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="avoid">
+  <h2 id="avoid">What not to do</h2>
+  <ul>
+    <li><strong>Do not rewrite in Python or Node.</strong> You would lose the quality gates, the injection-based polymorphism and months of working code.</li>
+    <li><strong>Do not add a graph database or a second datastore.</strong> Postgres covers the entity and fact model.</li>
+    <li><strong>Do not move to a managed vector database.</strong> It violates the local-first requirement.</li>
+  </ul>
+</section>
+
+<section aria-labelledby="additions">
+  <h2 id="additions">Small, worthwhile additions</h2>
+  <p>These are additions, not replacements. Each should land alongside the related decision record.</p>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th scope="col">Addition</th><th scope="col">Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Spring AI structured output / bean output converter</th><td>Cleaner and safer than hand-parsing JSON in the extraction service.</td></tr>
+        <tr><th scope="row">A Markdown document reader (or a small custom reader)</th><td>To ingest wiki pages for wiki-aware chat, per the answer-intent routing record.</td></tr>
+        <tr><th scope="row">SnakeYAML for schema files</th><td>Reads the declarative extraction schemas. It is already a transitive dependency.</td></tr>
+        <tr><th scope="row">A Maven profile to gate the new pipeline during rollout</th><td>Keeps delivery incremental and safe.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="summary">
+  <h2 id="summary">Summary</h2>
+  <div class="callout callout--note">
+    <p>If this were a throwaway prototype, Python would be the faster choice. For a long-lived, trust-critical personal vault with heavy relational data, Java, Spring Boot and Postgres are arguably the better choice, and you already have them.</p>
+    <p>Keep the stack, add the four libraries above as their decision records land, and let the vault design be the differentiator.</p>
+  </div>
+</section>
+
+</article>
+</main>
+
+<footer class="page-footer">
+  <p>PersonaVault — local-first personal knowledge vault.</p>
+  <p>Related records: knowledge vault, three-tier truth model, generic entity and fact model, schema-driven extraction.</p>
+</footer>
+
+</body>
+</html>

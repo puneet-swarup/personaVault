@@ -125,7 +125,34 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 | [011](docs/adr/011-async-extraction.md) | Async extraction over synchronous |
 | [012](docs/adr/012-configurable-alert-thresholds.md) | Configurable alert thresholds (DB + cache) |
 | [013](docs/adr/013-document-deletion-cascade.md) | Document deletion cascade |
-| [014](docs/adr/014-notification-channel-abstraction.md) | Notification channel abstraction (strategy pattern) |   
+| [014](docs/adr/014-notification-channel-abstraction.md) | Notification channel abstraction (strategy pattern) |
+| [015][adr015] | Persistent knowledge vault over pure RAG |
+| [016][adr016] | Three-tier truth model & query escalation ladder |
+| [017][adr017] | Generic typed entity + fact model (Policy as a view) |
+| [018][adr018] | Schema-driven extraction registry |
+| [019][adr019] | Temporal fact validity & versioning |
+| [020][adr020] | Contradiction detection & review queue |
+| [021][adr021] | Confidence scoring & provenance requirements |
+| [022][adr022] | Wiki as markdown-on-disk (Obsidian-compatible) |
+| [023][adr023] | Answer intent routing (tier escalation) |
+| [024][adr024] | Corrections as first-class + feedback into extraction |
+| [025][adr025] | Truth & accuracy telemetry |
+| [026][adr026] | Extended deletion cascade & fact invalidation |
+| [027][adr027] | Domain expansion policy |
+
+[adr015]: docs/adr/015-persistent-knowledge-vault-over-pure-rag.md
+[adr016]: docs/adr/016-three-tier-truth-model-and-query-escalation.md
+[adr017]: docs/adr/017-generic-typed-entity-fact-model.md
+[adr018]: docs/adr/018-schema-driven-extraction-registry.md
+[adr019]: docs/adr/019-temporal-fact-validity-and-versioning.md
+[adr020]: docs/adr/020-contradiction-detection-review-queue.md
+[adr021]: docs/adr/021-confidence-scoring-and-provenance.md
+[adr022]: docs/adr/022-wiki-markdown-on-disk-obsidian-compatible.md
+[adr023]: docs/adr/023-answer-intent-routing.md
+[adr024]: docs/adr/024-corrections-first-class-feedback-loop.md
+[adr025]: docs/adr/025-truth-accuracy-telemetry.md
+[adr026]: docs/adr/026-extended-deletion-cascade.md
+[adr027]: docs/adr/027-domain-expansion-policy.md
 
 ## Releases
 
@@ -138,8 +165,10 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 |----|----|----|
 | 1	| Ingestion + Q&A (insurance & financial docs) |	✅ Complete (v0.1.0) |
 | 2	| Structured extraction + renewal alerts + dashboard + deletion + category | 🚧 In Progress |
-| 3	| Medical docs + document management + manual corrections |	⬜ |
-| 4	| OCR hardening, email alerts, export/wipe, security hardening | ⬜ |
+| 2.5 | Vault foundation: generic entity/fact model, wiki skeleton, Obsidian vault (ADR-015–017) | ⬜ |
+| 3 | Schema registry (Financial, Medical, ID), wiki compiler, contradiction queue, corrections UI (ADR-018–021, 024) |	⬜ |
+| 4 | Wiki-aware chat (intent router), telemetry dashboard, recompile endpoint, export/wipe, security hardening (ADR-023, 025) | ⬜ |
+| 5 | Domain expansion: Medical deep, Financial deep, timeline pages (ADR-027) | ⬜ |
 
 ## Non-Functional Requirements
 - 100% local — zero outbound network calls during normal operation

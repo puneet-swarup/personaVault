@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Size;
  */
 public record ChatRequest(
         @NotBlank(message = "Question cannot be blank")
-                @Size(max = 2000, message = "Question too long (max 2000 chars)")
-                String question,
+        @Size(max = 2000, message = "Question too long (max 2000 chars)")
+        String question,
+
         String category) {}

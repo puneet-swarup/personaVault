@@ -1,12 +1,34 @@
 #!/bin/sh
 # Pre-commit: fast formatting check (~2s)
 # Catches unformatted code before it enters the commit history.
+#
+# Uses the Maven wrapper (mvnw or mvnw.cmd) rather than a globally installed
+# mvn, because the wrapper is the supported setup for this repository and a
+# global mvn may not exist on the machine.
 
-echo "🔍 Running Spotless format check..."
-if ! mvn spotless:check -q 2>&1; then
+echo "Running Spotless format check..."
+
+if [ -x ./mvnw ]; then
+    if ./mvnw spotless:check -q; then
+        echo "Formatting OK"
+        exit 0
+    fi
     echo ""
-    echo "❌ Code formatting violations found."
-    echo "   Run 'mvn spotless:apply' to auto-fix, then re-stage."
+    echo "Code formatting violations found."
+    echo "   Auto-fix with: ./mvnw spotless:apply"
     exit 1
 fi
-echo "✅ Formatting OK"
+
+if [ -f ./mvnw.cmd ]; then
+    if ./mvnw.cmd spotless:check -q; then
+        echo "Formatting OK"
+        exit 0
+    fi
+    echo ""
+    echo "Code formatting violations found."
+    echo "   Auto-fix with: ./mvnw.cmd spotless:apply"
+    exit 1
+fi
+
+echo "pre-commit: no Maven wrapper found, skipping format check" >&2
+exit 0

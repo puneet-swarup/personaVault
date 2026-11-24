@@ -48,8 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ExtractionService {
 
-    private static final String EXTRACTION_SYSTEM_PROMPT =
-            """
+    private static final String EXTRACTION_SYSTEM_PROMPT = """
         You are a data extraction engine. Read the insurance policy document \
         provided by the user and output ONLY valid JSON with the following fields. \
         If a field is not present in the document, set it to null. \

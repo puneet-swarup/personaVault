@@ -17,14 +17,32 @@
 
   <properties>
     <java.version>21</java.version>
+    <!-- Build host runs JDK 25; Lombok 1.18.36 (Spring Boot default) cannot
+         process it, which makes every Lombok symbol appear missing. Pin a
+         version that supports newer JDKs so local builds work. -->
+    <lombok.version>1.18.42</lombok.version>
+    <!-- Mockito's inline mock maker uses ByteBuddy, and 1.15.x (Spring Boot
+         default) cannot instrument classes on JDK 25. Pin a compatible version. -->
+    <byte-buddy.version>1.17.5</byte-buddy.version>
     <spring-ai.version>1.0.0</spring-ai.version>
     <springdoc.version>2.7.0</springdoc.version>
-    <spotless.version>2.44.4</spotless.version>
+    <!-- Spotless 3.x + Palantir 2.91: required for JDK 25. Spotless 2.44 and
+         Palantir 2.50 call com.sun.tools.javac internals whose signatures
+         changed in JDK 25 (NoSuchMethodError on getDiagnostics). -->
+    <spotless.version>3.10.3</spotless.version>
     <checkstyle.plugin.version>3.6.0</checkstyle.plugin.version>
     <checkstyle.version>10.21.1</checkstyle.version>
-    <pmd.version>3.26.0</pmd.version>
-    <spotbugs.version>4.8.6.6</spotbugs.version>
-    <jacoco.version>0.8.12</jacoco.version>
+    <!-- maven-pmd-plugin 3.28.0 pulls PMD 7.x. PMD versions before 7.14
+         bundle ASM that cannot read class file major version 69 (JDK 25) and
+         fail with "Unsupported class file major version 69". The PMD library
+         version itself is pinned via the plugin dependency below. -->
+    <pmd.version>3.28.0</pmd.version>
+    <pmd.lib.version>7.14.0</pmd.lib.version>
+    <!-- SpotBugs 4.9.x bundles ASM 9.8 / BCEL 6.11, which can read class file
+         major version 69 (JDK 25). 4.8.x fails with "Unsupported class file
+         major version 69". JaCoCo 0.8.14 likewise adds JDK 25 instrumentation. -->
+    <spotbugs.version>4.9.8.0</spotbugs.version>
+    <jacoco.version>0.8.14</jacoco.version>
     <enforcer.version>3.5.0</enforcer.version>
   </properties>
 
@@ -156,7 +174,7 @@
         <configuration>
           <java>
             <palantirJavaFormat>
-              <version>2.50.0</version>
+              <version>2.91.0</version>
             </palantirJavaFormat>
             <removeUnusedImports/>
             <importOrder>
@@ -236,6 +254,22 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Explicit annotation processor path. JDK 23+ no longer runs
+           annotation processors found only on the classpath, so Lombok must be
+           declared here or none of its generated symbols (log, accessors) exist. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
 
       <!-- ==================== QUALITY GATES ==================== -->
 
@@ -294,6 +328,14 @@
           <printFailingErrors>true</printFailingErrors>
           <targetJdk>${java.version}</targetJdk>
         </configuration>
+        <dependencies>
+          <!-- Pin the PMD engine itself so it can read JDK 25 bytecode. -->
+          <dependency>
+            <groupId>net.sourceforge.pmd</groupId>
+            <artifactId>pmd-java</artifactId>
+            <version>${pmd.lib.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>pmd-check</id>
