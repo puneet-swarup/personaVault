@@ -21,8 +21,19 @@ body {
 }
 
 .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     font-size: 1.25rem;
     font-weight: 700;
+}
+
+.nav-mark {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
 .nav-links {
@@ -293,6 +304,19 @@ body {
     color: #1a1a2e;
 }
 
+/* Provenance chip: which tier answered (ADR-016 citation contract) */
+.citation-chip {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: #e8edff;
+    color: #3a4db8;
+    border: 1px solid #c7d2fe;
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
+}
+
 .chat-form {
     display: flex;
     gap: 0.5rem;
@@ -333,6 +357,14 @@ body {
     justify-content: center;
     min-height: 100vh;
     background: #1a1a2e;
+}
+
+.login-mark {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 0.75rem;
+    border-radius: 14px;
 }
 
 .login-card {

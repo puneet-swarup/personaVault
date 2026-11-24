@@ -76,3 +76,83 @@ Run this after `docker compose up -d` + `ollama serve` + `mvn spring-boot:run`.
    VALUES ('TEST-001', 'Test Insurer', 'HEALTH', CURRENT_DATE + 20, 15000, 1, true);   
 2. Wait for next 8 AM (or restart app to trigger startup catch-up)
 3. Expected: Notification in DB: SELECT * FROM notifications WHERE type='RENEWAL';
+
+## Phase 2.5 Tests — Knowledge Vault & Wiki (ADR-017, ADR-022)
+
+### Test 11: Facts written on ingest
+1. Upload `sample_health_policy.txt` with category "Health Insurance"
+2. Wait 10-30s (async extraction), then:
+   ```sql
+   SELECT e.entity_type, e.canonical_name, f.fact_key, f.value_type, f.value_text, f.source_doc_id
+   FROM entity e JOIN fact f ON f.entity_id = e.id
+   WHERE e.entity_type = 'POLICY';
+   ```
+3. **Expected:** one `POLICY` entity per policy number, and one fact per populated field
+   (`policyNumber`, `insurerName`, `policyType`, `effectiveDate`, `expiryDate`,
+   `annualPremium`, `premiumFrequency`)
+4. **Expected:** every fact has `source_doc_id` set (provenance is mandatory, ADR-021)
+
+### Test 12: Wiki page compiled on ingest
+1. After Test 11, list the vault:
+   ```bash
+   ls -R ./data/wiki
+   ```
+2. **Expected:** `./data/wiki/entity/policy-<policy-number>.md` exists
+3. **Expected:** `./data/wiki/index.md` exists and links the page as `[[policy-<number>|<number>]]`
+4. Open the page. **Expected:** YAML frontmatter with `slug`, `type: entity`,
+   `lastCompiledAt`, `version: 1`, `needsReview`, `sourceRefs: [doc:N]`, `factRefs: [...]`
+5. **Expected:** every row of the `## Facts` table ends with `[^f:<id>]` and each id has a
+   matching `[^f:<id>]: from <file name>` line under `## Sources`
+
+### Test 13: Provenance gate rejects an uncited page
+1. Delete a footnote line from a compiled page, then trigger a recompile (restart the app,
+   wait for the 02:30 run, or call `WikiCompilerService.compileAll()` from a scratch test —
+   the HTTP recompile endpoint is Phase 4)
+2. **Expected:** the page is rewritten with the footnote restored
+3. **Expected:** in the app log, no page is ever written with an uncited claim —
+   `WikiPageValidationException` appears instead if the renderer regresses
+
+### Test 14: Re-ingest is idempotent, change creates history
+1. Upload the same policy document again
+2. **Expected:** `fact` row count for that entity is unchanged (same document + same value
+   is not rewritten)
+3. Upload a renewal document with a higher premium for the same policy number
+4. **Expected:** a new `annualPremium` fact exists, and the previous one has `valid_to` set
+   and `superseded_by` pointing at the new fact
+5. **Expected:** the page shows the new premium under `## Facts` and the old one under
+   `## History` with its validity period
+
+### Test 15: Vault opens in Obsidian
+1. In Obsidian: *Open folder as vault* -> select `./data/wiki`
+2. **Expected:** pages open, `[[wikilinks]]` resolve, graph view shows entity nodes
+3. **Expected:** hand-editing a page does not break the app; the next recompile overwrites it
+
+## Phase 3 Tests — Wiki-Aware Chat (ADR-023)
+
+### Test 16: Exact-value question answered from the wiki page
+1. Ensure Test 12 passed (a page exists for your policy)
+2. In Chat, ask: "When does my HP-2025-00123 policy expire?"
+3. **Expected:** a chip above the answer reads "Answered from wiki page: HP-2025-00123"
+4. **Expected:** the answer states the expiry date with a `[^f:…]` marker, and the date matches
+   the `expiryDate` row in `./data/wiki/entity/policy-hp-2025-00123.md`
+5. **Expected:** app log shows `Routing: FACT answered from wiki page 'policy-hp-2025-00123'`
+
+### Test 17: Synthesis question answered from the page's History section
+1. After Test 14 (a premium change created history), ask:
+   "How has my premium changed?"
+2. **Expected:** chip reads "Answered from wiki page: …"
+3. **Expected:** the answer names both the old and the new premium and when each applied —
+   the values only exist together on that page, not in any single document chunk
+4. **Expected:** no vector search happens (log shows no `QuestionAnswerAdvisor` retrieval)
+
+### Test 18: Unrelated question still falls back to document search
+1. Ask: "What are the exclusions in the maternity clause?"
+2. **Expected:** chip reads "Answered from your documents"
+3. **Expected:** the answer still cites the source document, exactly as before this change
+
+### Test 19: Vault empty → behaviour unchanged
+1. Stop the app, `mv data/wiki data/wiki.bak`, restart
+2. Ask "When does my policy expire?"
+3. **Expected:** chip reads "Answered from your documents" — the app degrades to pre-vault
+   behaviour rather than failing
+4. Restore: `mv data/wiki.bak data/wiki`

@@ -1,5 +1,7 @@
 # PersonaVault
 
+<img src="src/main/resources/static/icon-512.png" alt="PersonaVault" width="96" height="96"/>
+
 **Local-first, single-user personal document assistant.**
 
 Ask questions about your insurance policies, financial records, and medical history in plain English — get grounded, cited answers. Proactive alerts for renewals and deadlines.
@@ -26,7 +28,10 @@ Browser (Thymeleaf + vanilla JS + SSE)
 │
 ▼
 Spring Boot 3.4
-├── ChatController → ChatClient + QuestionAnswerAdvisor → Ollama
+├── ChatController → AnswerService (ADR-023 router)
+│                      ├── wiki page found → answer from ./data/wiki/ page (Tier 3)
+│                      └── no page        → QuestionAnswerAdvisor → PGVector (Tier 1)
+│                    → Ollama
 ├── IngestionController → Tika → TokenTextSplitter → VectorStore
 ├── RenewalCheckerService (@Scheduled, daily 8 AM)
 ├── DocumentController
@@ -97,6 +102,55 @@ After cloning, run once:
 git config core.hooksPath scripts/hooks   
 ```
 
+The app icon lives in `src/main/resources/static/icon.svg` (a person at the centre of a
+vault door). `scripts/generate-icons.py` derives `favicon.ico` and the PNG set from it —
+run it after editing the SVG (`pip install cairosvg pillow`).
+
+## Knowledge Vault & Wiki
+
+PersonaVault is not a search box over your documents. It keeps three tiers of truth
+(ADR-015, ADR-016):
+
+| Tier | What it holds | Where |
+|---|---|---|
+| 1 | Sources — the uploaded files and their chunks | `./data/documents/` + PGVector |
+| 2 | Facts — typed, provenance-tracked values extracted at ingest | `entity` + `fact` tables |
+| 3 | Synthesis — interlinked wiki pages compiled from facts | `./data/wiki/` |
+
+Uploading a document extracts facts, then recompiles the wiki pages those facts touch.
+The result is a plain-markdown vault you can open in Obsidian:
+
+```
+data/wiki/
+  index.md                       ← generated table of contents
+  entity/
+    policy-hp-2025-00123.md      ← one page per policy, insurer, provider, ...
+```
+
+Every claim on a page carries a footnote back to the fact and the document it came from,
+and the compiler refuses to write a page whose claims are uncited:
+
+```markdown
+| Expiry date | 2026-03-14 [^f:2] | 95% |
+
+[^f:2]: from policy_hdfc.pdf, page 2
+```
+
+Chat answers from the wiki first: an exact-value question ("when does my policy expire")
+or a synthesis question ("how has my coverage changed") is answered from the compiled page,
+with its footnotes, and only falls back to document search when no page matches. The reply
+carries a chip saying which tier answered.
+
+Open `./data/wiki/` as a vault in [Obsidian](https://obsidian.md) for graph view,
+backlinks and search. The files are canonical: edit them by hand and the next nightly
+recompile (02:30) rewrites them from facts — so treat hand edits as comments to yourself,
+not as state.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `personavault.wiki.path` | `./data/wiki` | where markdown pages are written |
+| `personavault.wiki.recompile-cron` | `0 30 2 * * *` | nightly full recompile |
+
 ## Configuration
 
 All configuration via environment variables (see .env.example):
@@ -165,8 +219,8 @@ All major architectural decisions are documented as ADR (Architecture Decision R
 |----|----|----|
 | 1	| Ingestion + Q&A (insurance & financial docs) |	✅ Complete (v0.1.0) |
 | 2	| Structured extraction + renewal alerts + dashboard + deletion + category | 🚧 In Progress |
-| 2.5 | Vault foundation: generic entity/fact model, wiki skeleton, Obsidian vault (ADR-015–017) | ⬜ |
-| 3 | Schema registry (Financial, Medical, ID), wiki compiler, contradiction queue, corrections UI (ADR-018–021, 024) |	⬜ |
+| 2.5 | Vault foundation: generic entity/fact model, wiki skeleton, Obsidian vault (ADR-015–017) | 🚧 In Progress — entity/fact model, wiki compiler, markdown vault, provenance validator (ADR-022) |
+| 3 | Schema registry (Financial, Medical, ID), wiki compiler, contradiction queue, corrections UI (ADR-018–021, 024) |	🚧 In Progress — wiki compiler (ADR-022) and wiki-aware chat routing (ADR-023) landed |
 | 4 | Wiki-aware chat (intent router), telemetry dashboard, recompile endpoint, export/wipe, security hardening (ADR-023, 025) | ⬜ |
 | 5 | Domain expansion: Medical deep, Financial deep, timeline pages (ADR-027) | ⬜ |
 
@@ -185,9 +239,10 @@ src/main/java/com/personavault/
 ├── PersonaVaultApplication.java
 ├── config/          ← Security, AI, Async, Storage
 ├── controller/      ← REST + Thymeleaf controllers
-├── service/         ← Ingestion, Extraction, Chat, Renewal, Notification
+├── service/         ← Ingestion, Extraction, Chat, Renewal, Notification,
+│                       FactIngestion, WikiCompiler (+ slugger, renderer, validator, store)
 ├── repository/      ← JPA repositories
-├── entity/          ← Policy, Document, Notification, AlertThreshold, DocumentCategory
+├── entity/          ← Policy, Document, Notification, AlertThreshold, Fact, VaultEntity, WikiPage
 └── dto/             ← Request/response records     
 ```
 

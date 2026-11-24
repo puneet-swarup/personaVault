@@ -68,6 +68,11 @@ springdoc:
 personavault:
   storage:
     path: ./data/documents
+  wiki:
+    # Markdown wiki (Tier 3). Open this folder as an Obsidian vault (ADR-022).
+    path: ./data/wiki
+    # Nightly full recompile, the safety net against drift.
+    recompile-cron: "0 30 2 * * *"
   security:
     username: ${PV_USER:admin}
     password: ${PV_PASSWORD:admin}

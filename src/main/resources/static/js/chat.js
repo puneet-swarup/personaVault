@@ -4,7 +4,9 @@
  *
  * Protocol:
  *   Client → POST /api/chat/stream (JSON: { question })
- *   Server → SSE stream: "data: <token>\n\n" frames
+ *   Server → SSE stream:
+ *     event:citation  data:{"tier":"WIKI","slug":"...","title":"..."}   (once, first)
+ *     data: <token>                                                     (many)
  *
  * We use fetch() + ReadableStream (not EventSource) because
  * EventSource only supports GET requests.
@@ -63,14 +65,18 @@ form.addEventListener('submit', async (e) => {
             sseBuffer = frames.pop(); // Last element is incomplete (or empty)
 
             for (const frame of frames) {
-                const data = frame.replace(/^data:/, '');
-                if (data) {
+                const parsed = parseFrame(frame);
+                if (parsed.event === 'citation') {
+                    showCitation(botEl, parsed.data);
+                    continue;
+                }
+                if (parsed.data) {
                     if (answer === '') {
                         // First token received — remove thinking indicator
                         botEl.classList.remove('thinking');
                         botEl.querySelector('.message-text').textContent = '';
                     }
-                    answer += data;
+                    answer += parsed.data;
                     botEl.querySelector('.message-text').textContent = answer;
                     log.scrollTop = log.scrollHeight;
                 }
@@ -101,4 +107,48 @@ function appendMessage(role, text) {
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
     return div;
+}
+/**
+ * Parses one SSE frame into its event name and data payload.
+ *
+ * Handles unnamed frames ("data: token") and named ones, which is how the
+ * server sends provenance: "event:citation" followed by a JSON "data:" line.
+ *
+ * @param {string} frame - one raw SSE frame, without the trailing blank line
+ * @returns {{event: string, data: string}}
+ */
+function parseFrame(frame) {
+    let event = 'message';
+    const data = [];
+    for (const line of frame.split('\n')) {
+        if (line.startsWith('event:')) {
+            event = line.slice(6).trim();
+        } else if (line.startsWith('data:')) {
+            data.push(line.slice(5).replace(/^ /, ''));
+        }
+    }
+    return { event, data: data.join('\n') };
+}
+
+/**
+ * Renders which tier answered, above the answer text.
+ *
+ * @param {HTMLElement} botEl - the message bubble being filled
+ * @param {string} payload - JSON citation frame from the server
+ */
+function showCitation(botEl, payload) {
+    let citation;
+    try {
+        citation = JSON.parse(payload);
+    } catch (e) {
+        return;
+    }
+    const chip = document.createElement('div');
+    chip.className = 'citation-chip';
+    if (citation.tier === 'RAG') {
+        chip.textContent = 'Answered from your documents';
+    } else {
+        chip.textContent = 'Answered from wiki page: ' + (citation.title || citation.slug);
+    }
+    botEl.insertBefore(chip, botEl.firstChild);
 }
