@@ -1,11 +1,16 @@
 #!/bin/sh
 # Pre-push: full quality gate (~30-60s)
 # Catches style, static analysis, test, and coverage failures before they hit the remote.
+#
+# Uses the Maven wrapper (./mvnw), not a globally installed `mvn`, so the gate
+# works on Windows (Git Bash) and on machines without Maven on PATH.
 
-echo "🔍 Running full quality gate (mvn verify)..."
-if ! mvn verify -q 2>&1; then
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+echo ">> Running full quality gate (mvn verify)..."
+if ! sh ./mvnw verify -q 2>&1; then
     echo ""
-    echo "❌ Quality gate failed. Fix the issues above before pushing."
+    echo "[FAIL] Quality gate failed. Fix the issues above before pushing."
     exit 1
 fi
-echo "✅ Quality gate passed"
+echo "[OK] Quality gate passed"
